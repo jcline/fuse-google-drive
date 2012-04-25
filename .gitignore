@@ -12,3 +12,7 @@ depcomp
 install-sh
 missing
 *~
+*.o
+.*.swp
+fuse-google-drive
+ltmain.sh
