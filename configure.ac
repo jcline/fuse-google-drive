@@ -5,7 +5,7 @@ AC_PREREQ([2.68])
 AC_INIT([fuse-google-drive], [0])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip tar-ustar foreign])
-AC_CONFIG_SRCDIR([gd_fuse_operations.c])
+AC_CONFIG_SRCDIR([.])
 
 
 # Checks for programs.
