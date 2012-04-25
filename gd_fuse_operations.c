@@ -143,6 +143,9 @@ int gd_removexattr (const char *, const char *) {
 	return 0;
 }
 
+
+// Only uncomment these assignments once an operation's function has been
+// fleshed out.
 struct fuse_operations gd_oper = {
 	//.getattr = gd_getattr;
 	//.readlink = gd_readlink;
