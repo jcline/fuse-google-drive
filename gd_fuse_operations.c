@@ -17,6 +17,8 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <fuse.h>
+
 int gd_getattr (const char *, struct stat *) {
 	return 0;
 }
