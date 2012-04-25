@@ -174,3 +174,8 @@ struct fuse_operations gd_oper = {
 	//.removexattr = gd_removexattr;
 }
 
+
+int main(int argc, char* argv[])
+{
+	return 0;
+}
