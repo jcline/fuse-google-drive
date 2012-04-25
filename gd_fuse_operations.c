@@ -290,7 +290,11 @@ int main(int argc, char* argv[])
 	int fuse_stat;
 	struct gd_state gd_data;
 
+	// Start fuse
 	fuse_stat = fuse_main(argc, argv, &gd_oper, &gd_data);
+	/*  When we get here, fuse has finished.
+	 *  Do any necessary cleanups.
+	 */
 
 	return fuse_stat;
 }
