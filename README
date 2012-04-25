@@ -1,1 +1,3 @@
 fuse-google-drive is a fuse filesystem wrapper for Google Drive released under GPLv2
+
+Currently in preliminary development stages.
