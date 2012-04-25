@@ -220,54 +220,57 @@ int gd_ioctl (const char *path, int cmd, void *arg, struct fuse_file_info *filei
 	return 0;
 }
 
+
 int gd_poll (const char *path, struct fuse_file_info *fileinfo, struct fuse_pollhandle *ph, unsigned *reventsp)
 {
 	return 0;
 }
+
+
 // Only uncomment these assignments once an operation's function has been
 // fleshed out.
 struct fuse_operations gd_oper = {
-	//.getattr = gd_getattr;
-	//.readlink = gd_readlink;
+	//.getattr     = gd_getattr;
+	//.readlink    = gd_readlink;
 	// getdir() deprecated, use readdir()
-	.getdir = NULL;
-	//.mknod = gd_mknod;
-	//.mkdir = gd_mkdir;
-	//.unlink = gd_unlink;
-	//.rmdir = gd_rmdir;
-	//.symlink = gd_symlink;
-	//.rename = gd_rename;
-	//.link = gd_link;
-	//.chmod = gd_chmod;
-	//.chown = gd_chown;
-	//.truncate = gd_truncate;
+	.getdir        = NULL;
+	//.mknod       = gd_mknod;
+	//.mkdir       = gd_mkdir;
+	//.unlink      = gd_unlink;
+	//.rmdir       = gd_rmdir;
+	//.symlink     = gd_symlink;
+	//.rename      = gd_rename;
+	//.link        = gd_link;
+	//.chmod       = gd_chmod;
+	//.chown       = gd_chown;
+	//.truncate    = gd_truncate;
 	// utime() deprecated, use utimens
-	.utime = NULL;
-	//.open = gd_open;
-	//.read = gd_read;
-	//.write = gd_write;
-	//.statfs = gd_statfs;
-	//.flush = gd_flush;
-	//.release = gd_release;
-	//.fsync = gd_fsync;
-	//.setxattr = gd_setxattr;
-	//.getxattr = gd_getxattr;
-	//.listxattr = gd_listxattr;
+	.utime         = NULL;
+	//.open        = gd_open;
+	//.read        = gd_read;
+	//.write       = gd_write;
+	//.statfs      = gd_statfs;
+	//.flush       = gd_flush;
+	//.release     = gd_release;
+	//.fsync       = gd_fsync;
+	//.setxattr    = gd_setxattr;
+	//.getxattr    = gd_getxattr;
+	//.listxattr   = gd_listxattr;
 	//.removexattr = gd_removexattr;
-	//.opendir = gd_opendir;
-	//.readdir = gd_readdir;
-	//.releasedir = gd_releasedir;
-	//.fsyncdir = gd_fsyncdir;
-	//.init = gd_init;
-	//.destroy = gd_destroy;
-	//.access = gd_access;
-	//.create = gd_create;
-	//.ftruncate = gd_ftruncate;
-	//.getattr = gd_fgetattr;
-	//.lock = gd_lock;
-	//.utimens = gd_utimens;
-	//.ioctl = gd_ioctl;
-	//.poll = gd_poll;
+	//.opendir     = gd_opendir;
+	//.readdir     = gd_readdir;
+	//.releasedir  = gd_releasedir;
+	//.fsyncdir    = gd_fsyncdir;
+	//.init        = gd_init;
+	//.destroy     = gd_destroy;
+	//.access      = gd_access;
+	//.create      = gd_create;
+	//.ftruncate   = gd_ftruncate;
+	//.getattr     = gd_fgetattr;
+	//.lock        = gd_lock;
+	//.utimens     = gd_utimens;
+	//.ioctl       = gd_ioctl;
+	//.poll        = gd_poll;
 }
 
 
