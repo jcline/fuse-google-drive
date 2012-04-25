@@ -18,31 +18,25 @@
 
 #include <fuse.h>
 
-int gd_getattr (const char *path, struct stat *)
+int gd_getattr (const char *path, struct stat *statbuf)
 {
 	return 0;
 }
 
 
-int gd_readlink (const char *path, char *, size_t)
+int gd_readlink (const char *path, char *link, size_t size)
 {
 	return 0;
 }
 
 
-int gd_getdir (const char *path, fuse_dirh_t, fuse_dirfil_t)
+int gd_mknod (const char *path, mode_t mode, dev_t dev)
 {
 	return 0;
 }
 
 
-int gd_mknod (const char *path, mode_t, dev_t)
-{
-	return 0;
-}
-
-
-int gd_mkdir (const char *path, mode_t)
+int gd_mkdir (const char *path, mode_t mode)
 {
 	return 0;
 }
@@ -60,109 +54,103 @@ int gd_rmdir (const char *path)
 }
 
 
-int gd_symlink (const char *path, const char *)
+int gd_symlink (const char *path, const char *link)
 {
 	return 0;
 }
 
 
-int gd_rename (const char *path, const char *)
+int gd_rename (const char *path, const char *newpath)
 {
 	return 0;
 }
 
 
-int gd_link (const char *path, const char *)
+int gd_link (const char *path, const char *newpath)
 {
 	return 0;
 }
 
 
-int gd_chmod (const char *path, mode_t)
+int gd_chmod (const char *path, mode_t mode)
 {
 	return 0;
 }
 
 
-int gd_chown (const char *path, uid_t, gid_t)
+int gd_chown (const char *path, uid_t uid, gid_t gid)
 {
 	return 0;
 }
 
 
-int gd_truncate (const char *path, off_t)
+int gd_truncate (const char *path, off_t newsize)
 {
 	return 0;
 }
 
 
-int gd_utime (const char *path, struct utimbuf *)
+int gd_open (const char *path, struct fuse_file_info * fileinfo)
 {
 	return 0;
 }
 
 
-int gd_open (const char *path, struct fuse_file_info *)
+int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileinfo)
 {
 	return 0;
 }
 
 
-int gd_read (const char *path, char *, size_t, off_t, struct fuse_file_info *)
+int gd_write (const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileinfo)
 {
 	return 0;
 }
 
 
-int gd_write (const char *path, const char *, size_t, off_t,struct fuse_file_info *)
+int gd_statfs (const char *path, struct statvfs *statv)
 {
 	return 0;
 }
 
 
-int gd_statfs (const char *path, struct statfs *)
+int gd_flush (const char *path, struct fuse_file_info *fileinfo)
 {
 	return 0;
 }
 
 
-int gd_flush (const char *path, struct fuse_file_info *)
+int gd_release (const char *path, struct fuse_file_info *fileinfo)
 {
 	return 0;
 }
 
 
-int gd_release (const char *path, struct fuse_file_info *)
+int gd_fsync (const char *path, int datasync, struct fuse_file_info *fileinfo)
 {
 	return 0;
 }
 
 
-int gd_fsync (const char *path, int, struct fuse_file_info *)
+int gd_setxattr (const char *path, const char *name, const char *value, size_t size, int flags)
 {
 	return 0;
 }
 
 
-int gd_setxattr (const char *path, const char *, const char *, size_t, int)
+int gd_getxattr (const char *path, const char *name, char *value, size_t size)
 {
 	return 0;
 }
 
 
-int gd_getxattr (const char *path, const char *, char *, size_t)
+int gd_listxattr (const char *path, char *list, size_t size)
 {
 	return 0;
 }
 
 
-int gd_listxattr (const char *path, char *, size_t)
-{
-	return 0;
-}
-
-
-int gd_removexattr (const char *path, const char *)
+int gd_removexattr (const char *path, const char *name)
 {
 	return 0;
 }
@@ -173,7 +161,8 @@ int gd_removexattr (const char *path, const char *)
 struct fuse_operations gd_oper = {
 	//.getattr = gd_getattr;
 	//.readlink = gd_readlink;
-	//.getdir = gd_getdir;
+	// getdir() deprecated, use readdir()
+	.getdir = NULL;
 	//.mknod = gd_mknod;
 	//.mkdir = gd_mkdir;
 	//.unlink = gd_unlink;
@@ -184,7 +173,8 @@ struct fuse_operations gd_oper = {
 	//.chmod = gd_chmod;
 	//.chown = gd_chown;
 	//.truncate = gd_truncate;
-	//.utime = gd_utime;
+	// utime() deprecated, use utimens
+	.utime = NULL;
 	//.open = gd_open;
 	//.read = gd_read;
 	//.write = gd_write;
