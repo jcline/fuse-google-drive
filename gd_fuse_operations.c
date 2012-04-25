@@ -16,6 +16,7 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#define FUSE_USE_VERSION 26
 #include <fuse.h>
 
 int gd_getattr (const char *path, struct stat *statbuf)
@@ -273,8 +274,17 @@ struct fuse_operations gd_oper = {
 	//.poll        = gd_poll,
 };
 
+struct gd_state {
+	char* root;
+	// TODO: tokens, char*?
+};
 
 int main(int argc, char* argv[])
 {
-	return 0;
+	int fuse_stat;
+	struct gd_state gd_data;
+
+	fuse_stat = fuse_main(argc, argv, &gd_oper, &gd_data);
+
+	return fuse_stat;
 }
