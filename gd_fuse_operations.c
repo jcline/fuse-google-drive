@@ -17,31 +17,129 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-int gd_getattr (const char *, struct stat *);
-int gd_readlink (const char *, char *, size_t);
-int gd_getdir (const char *, fuse_dirh_t, fuse_dirfil_t);
-int gd_mknod (const char *, mode_t, dev_t);
-int gd_mkdir (const char *, mode_t);
-int gd_unlink (const char *);
-int gd_rmdir (const char *);
-int gd_symlink (const char *, const char *);
-int gd_rename (const char *, const char *);
-int gd_link (const char *, const char *);
-int gd_chmod (const char *, mode_t);
-int gd_chown (const char *, uid_t, gid_t);
-int gd_truncate (const char *, off_t);
-int gd_utime (const char *, struct utimbuf *);
-int gd_open (const char *, struct fuse_file_info *);
-int gd_read (const char *, char *, size_t, off_t, struct fuse_file_info *);
-int gd_write (const char *, const char *, size_t, off_t,struct fuse_file_info *);
-int gd_statfs (const char *, struct statfs *);
-int gd_flush (const char *, struct fuse_file_info *);
-int gd_release (const char *, struct fuse_file_info *);
-int gd_fsync (const char *, int, struct fuse_file_info *);
-int gd_setxattr (const char *, const char *, const char *, size_t, int);
-int gd_getxattr (const char *, const char *, char *, size_t);
-int gd_listxattr (const char *, char *, size_t);
-int gd_removexattr (const char *, const char *);
+int gd_getattr (const char *, struct stat *) {
+	return 0;
+}
+
+
+int gd_readlink (const char *, char *, size_t) {
+	return 0;
+}
+
+
+int gd_getdir (const char *, fuse_dirh_t, fuse_dirfil_t) {
+	return 0;
+}
+
+
+int gd_mknod (const char *, mode_t, dev_t) {
+	return 0;
+}
+
+
+int gd_mkdir (const char *, mode_t) {
+	return 0;
+}
+
+
+int gd_unlink (const char *) {
+	return 0;
+}
+
+
+int gd_rmdir (const char *) {
+	return 0;
+}
+
+
+int gd_symlink (const char *, const char *) {
+	return 0;
+}
+
+
+int gd_rename (const char *, const char *) {
+	return 0;
+}
+
+
+int gd_link (const char *, const char *) {
+	return 0;
+}
+
+
+int gd_chmod (const char *, mode_t) {
+	return 0;
+}
+
+
+int gd_chown (const char *, uid_t, gid_t) {
+	return 0;
+}
+
+
+int gd_truncate (const char *, off_t) {
+	return 0;
+}
+
+
+int gd_utime (const char *, struct utimbuf *) {
+	return 0;
+}
+
+
+int gd_open (const char *, struct fuse_file_info *) {
+	return 0;
+}
+
+
+int gd_read (const char *, char *, size_t, off_t, struct fuse_file_info *) {
+	return 0;
+}
+
+
+int gd_write (const char *, const char *, size_t, off_t,struct fuse_file_info *) {
+	return 0;
+}
+
+
+int gd_statfs (const char *, struct statfs *) {
+	return 0;
+}
+
+
+int gd_flush (const char *, struct fuse_file_info *) {
+	return 0;
+}
+
+
+int gd_release (const char *, struct fuse_file_info *) {
+	return 0;
+}
+
+
+int gd_fsync (const char *, int, struct fuse_file_info *) {
+	return 0;
+}
+
+
+int gd_setxattr (const char *, const char *, const char *, size_t, int) {
+	return 0;
+}
+
+
+int gd_getxattr (const char *, const char *, char *, size_t) {
+	return 0;
+}
+
+
+int gd_listxattr (const char *, char *, size_t) {
+	return 0;
+}
+
+
+int gd_removexattr (const char *, const char *) {
+	return 0;
+}
 
 struct fuse_operations gd_oper = {
 	//.getattr = gd_getattr;
