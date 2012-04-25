@@ -17,9 +17,6 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef GD_FUSE_OPERATIONS_H
-#define GD_FUSE_OPERATIONS_H
-
 int gd_getattr (const char *, struct stat *);
 int gd_readlink (const char *, char *, size_t);
 int gd_getdir (const char *, fuse_dirh_t, fuse_dirfil_t);
@@ -74,4 +71,3 @@ struct fuse_operations gd_oper = {
 	//.removexattr = gd_removexattr;
 }
 
-#endif
