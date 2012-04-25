@@ -156,6 +156,74 @@ int gd_removexattr (const char *path, const char *name)
 }
 
 
+int gd_opendir (const char *path, struct fuse_file_info *fileinfo)
+{
+	return 0;
+}
+
+
+int gd_releasedir (const char *path, struct fuse_file_info *fileinfo)
+{
+	return 0;
+}
+
+
+void *gd_init (struct fuse_conn_info *conn)
+{
+	return NULL;
+}
+
+
+void gd_destroy (void *userdata)
+{
+}
+
+
+int gd_access (const char *path, int mask)
+{
+	return 0;
+}
+
+
+int gd_create (const char *path, mode_t mode, struct fuse_file_info *fileinfo)
+{
+	return 0;
+}
+
+
+int gd_ftruncate (const char *path, off_t offset, struct fuse_file_info *fileinfo)
+{
+	return 0;
+}
+
+
+int gd_fgetattr (const char *path, struct stat *statbuf, struct fuse_file_info *fileinfo)
+{
+	return 0;
+}
+
+
+int gd_lock (const char *path, struct fuse_file_info *fileinfo, int cmd, struct flock *lock)
+{
+	return 0;
+}
+
+
+int gd_utimens (const char *path, const struct timespec tv[2])
+{
+	return 0;
+}
+
+
+int gd_ioctl (const char *path, int cmd, void *arg, struct fuse_file_info *fileinfo, unsigned int flags, void *data)
+{
+	return 0;
+}
+
+int gd_poll (const char *path, struct fuse_file_info *fileinfo, struct fuse_pollhandle *ph, unsigned *reventsp)
+{
+	return 0;
+}
 // Only uncomment these assignments once an operation's function has been
 // fleshed out.
 struct fuse_operations gd_oper = {
@@ -186,6 +254,20 @@ struct fuse_operations gd_oper = {
 	//.getxattr = gd_getxattr;
 	//.listxattr = gd_listxattr;
 	//.removexattr = gd_removexattr;
+	//.opendir = gd_opendir;
+	//.readdir = gd_readdir;
+	//.releasedir = gd_releasedir;
+	//.fsyncdir = gd_fsyncdir;
+	//.init = gd_init;
+	//.destroy = gd_destroy;
+	//.access = gd_access;
+	//.create = gd_create;
+	//.ftruncate = gd_ftruncate;
+	//.getattr = gd_fgetattr;
+	//.lock = gd_lock;
+	//.utimens = gd_utimens;
+	//.ioctl = gd_ioctl;
+	//.poll = gd_poll;
 }
 
 
