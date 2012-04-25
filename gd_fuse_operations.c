@@ -274,9 +274,15 @@ struct fuse_operations gd_oper = {
 	//.poll        = gd_poll,
 };
 
+/**
+ *  Store any state about this mount in this structure.
+ *
+ *  root: The path to the mount point of the drive.
+ *  TODO:
+ *    Tokens - should they be char*s? 
+ */
 struct gd_state {
 	char* root;
-	// TODO: tokens, char*?
 };
 
 int main(int argc, char* argv[])
