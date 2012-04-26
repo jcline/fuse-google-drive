@@ -26,10 +26,11 @@
 struct gdi_state {
 	char *clientsecrets;
 	char *redirecturi;
+	char *clientid;
 	CURLM *curlmulti;
 };
 
-char* urlencode (const char *url, size_t length);
+char* urlencode (const char *url, size_t* length);
 
 int gdi_get_credentials();
 char* gdi_load_clientsecrets(const char *path);

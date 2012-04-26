@@ -27,6 +27,12 @@
 
 #include "gd_interface.h"
 
+const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
+const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
+const char drive_scope[] = "https://www.googleapis.com/auth/drive.file";
+const char email_scope[] = "https://www.googleapis.com/auth/userinfo.email";
+const char profile_scope[] = "https://www.googleapis.com/auth/userinfo.profile";
+
 char urlunsafe[] = 
 {
 	'$',
@@ -53,20 +59,20 @@ char urlunsafe[] =
 	'~',
 	'[',
 	']',
-	'`',
-	'\0'
+	'`'
 };
 
-char* urlencode (const char *url, size_t length)
+char* urlencode (const char *url, size_t *length)
 {
 	size_t i;
 	size_t j;
 	size_t count = 0;
-	for(i = 0; i < length; ++i)
+	size_t size = *length;
+	for(i = 0; i < size; ++i)
 	{
 		for(j = 0; j < sizeof(urlunsafe); ++j)
 		{
-			if(url[i] == url[j])
+			if(url[i] == urlunsafe[j])
 			{
 				++count;
 				break;
@@ -74,12 +80,12 @@ char* urlencode (const char *url, size_t length)
 		}
 	}
 
-	char *result = (char *) malloc( sizeof(char) * (length + count*3));
+	char *result = (char *) malloc( sizeof(char) * (size + count*3));
 	if(result == NULL)
 		return NULL;
 
 	char *iter = result;
-	for(i = 0; i < length; ++i)
+	for(i = 0; i < size; ++i)
 	{
 		for(j = 0; j < sizeof(urlunsafe); ++j)
 		{
@@ -99,7 +105,9 @@ char* urlencode (const char *url, size_t length)
 		}
 	}
 
-	result[(length+count*3)-1] = 0;
+	size = iter - result;
+	result[size] = 0;
+	*length = size;
 	return result;
 }
 
@@ -135,6 +143,12 @@ char* load_file(const char* path)
 		return NULL;
 	}
 
+	fclose(f);
+
+	// Strip trailing newlines
+	if(result[size-1] == '\n')
+		result[size-1] = 0;
+
 	return result;
 }
 
@@ -154,6 +168,29 @@ char* gdi_load_redirecturi(const char *path)
 	return load_file(path);
 }
 
+/** Reads in the client id from a file.
+ *
+ */
+char* gdi_load_clientid(const char *path)
+{
+	return load_file(path);
+}
+
+size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
+{
+	size_t length = size;
+	char *encoded = urlencode(uri, &length);
+	memmove(buf, encoded, length);
+	free(encoded);
+	return length-1;
+}
+
+size_t add_unencoded_str(char *buf, const char *str, const size_t size)
+{
+	memmove(buf, str, size);
+	return size-1;
+}
+
 int gdi_init(struct gdi_state* state)
 {
 	state->clientsecrets = gdi_load_clientsecrets("clientsecrets");
@@ -167,13 +204,61 @@ int gdi_init(struct gdi_state* state)
 		return 1;
 	}
 
-	state->curlmulti = curl_multi_init();
-	if(state->curlmulti == NULL)
+	state->clientid = gdi_load_clientid("clientid");
+	if(state->clientid == NULL)
 	{
 		free(state->clientsecrets);
 		free(state->redirecturi);
 		return 1;
 	}
+
+	state->curlmulti = curl_multi_init();
+	if(state->curlmulti == NULL)
+	{
+		free(state->clientsecrets);
+		free(state->redirecturi);
+		free(state->clientid);
+		return 1;
+	}
+
+	/* Authenticate the application */
+	char response_type[] = "?response_type=code";
+	char redirect[] = "&redirect_uri=";
+	char scope[] = "&scope=";
+	char clientid[] = "&client_id=";
+
+	// Calculating the correct value is more trouble than it is worth
+	char *complete_authuri = (char *) malloc(sizeof(char) * 3000);
+	char *iter = complete_authuri;
+
+	// Create the authentication request URI
+	// There might be a cleaner way to do this...
+	iter += add_unencoded_str(iter, auth_uri, sizeof(auth_uri));
+	iter += add_unencoded_str(iter, response_type, sizeof(response_type));
+	iter += add_unencoded_str(iter, scope, sizeof(scope));
+
+	iter += add_encoded_uri(iter, email_scope, sizeof(email_scope));
+
+	*iter = '+';
+	++iter;
+
+	iter += add_encoded_uri(iter, profile_scope, sizeof(profile_scope));
+
+	*iter = '+';
+	++iter;
+
+	iter += add_encoded_uri(iter, drive_scope, sizeof(drive_scope));
+
+	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
+
+	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
+
+	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
+
+	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
+
+	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri);
+	free(complete_authuri);
 
 	return 0;
 }
