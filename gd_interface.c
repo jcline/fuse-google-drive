@@ -107,10 +107,7 @@ int gdi_get_credentials()
 	return 0;
 }
 
-/** Reads in the clientsecrets from a file.
- *
- */
-char* gdi_load_clientsecrets(const char *path)
+char* load_file(const char* path)
 {
 	FILE *f = fopen(path, "rb");
 	if(f == NULL)
@@ -139,15 +136,37 @@ char* gdi_load_clientsecrets(const char *path)
 	return result;
 }
 
+/** Reads in the clientsecrets from a file.
+ *
+ */
+char* gdi_load_clientsecrets(const char *path)
+{
+	return load_file(path);
+}
+
+/** Reads in the redirection URI from a file.
+ *
+ */
+char* gdi_load_redirecturi(const char *path)
+{
+	return load_file(path);
+}
+
 int gdi_init(struct gdi_state* state)
 {
 	state->clientsecrets = gdi_load_clientsecrets("clientsecrets");
 	if(state->clientsecrets == NULL)
 		return 1;
 
+	state->redirecturi = gdi_load_redirecturi("redirecturi");
+	if(state->redirecturi == NULL)
+		return 1;
+
 	return 0;
 }
 
-void gdi_destroy()
+void gdi_destroy(struct gdi_state* state)
 {
+	free(state->clientsecrets);
+	free(state->redirecturi);
 }

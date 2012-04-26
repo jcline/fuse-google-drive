@@ -401,7 +401,7 @@ struct fuse_operations gd_oper = {
  */
 struct gd_state {
 	char* root;
-	struct gdi_state credentials;
+	struct gdi_state gdi_data;
 };
 
 int main(int argc, char* argv[])
@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
 	int fuse_stat;
 	struct gd_state gd_data;
 
-	int ret = gdi_init(&gd_data.credentials);
+	int ret = gdi_init(&gd_data.gdi_data);
 	if(ret != 0)
 		return ret;
 
@@ -418,6 +418,7 @@ int main(int argc, char* argv[])
 	/*  When we get here, fuse has finished.
 	 *  Do any necessary cleanups.
 	 */
+	gdi_destroy(&gd_data.gdi_data);
 
 	return fuse_stat;
 }
