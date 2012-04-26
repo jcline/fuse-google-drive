@@ -169,19 +169,15 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	
 	tmp = json_object_object_get(json, "token_type");
 	state->token_type = json_object_get_string(tmp);
-	printf("\n%s\n", state->token_type);
 
 	tmp = json_object_object_get(json, "refresh_token");
 	state->refresh_token = json_object_get_string(tmp);
-	printf("\n%s\n", state->refresh_token);
 
 	tmp = json_object_object_get(json, "id_token");
 	state->id_token = json_object_get_string(tmp);
-	printf("\n%s\n", state->id_token);
 
 	tmp = json_object_object_get(json, "expires_in");
-	state->token_expiration = *json_object_get_string(tmp);
-	printf("\n%d\n", state->token_expiration);
+	state->token_expiration = json_object_get_int(tmp);
 
 	return size*nmemb;
 }
