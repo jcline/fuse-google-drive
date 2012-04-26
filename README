@@ -2,6 +2,21 @@ fuse-google-drive is a fuse filesystem wrapper for Google Drive released under G
 
 Currently in preliminary development stages.
 
+Dependencies:
+	fuse
+
+Build Dependencies:
+	autotools
+	make
+
+Compilation:
+	./autogen.sh
+	./configure
+	make
+
+Usage:
+	mkdir mountpint
+	./fuse-google-drive mountpoint
 
 Thanks to:
 	http://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/
