@@ -16,8 +16,14 @@ Compilation:
 	$ make
 
 Usage:
-	mkdir mountpint
-	./fuse-google-drive mountpoint
+	Right now you need to go to http://code.google.com/apis/console and create
+a new app and generate a client id and client secret for an install application.
+Place the client secret in clientsecret and the redirect URI in redirecturi in
+the same directory as fuse-google-drive. Hopefully a better solution for this
+ can be found.
+
+	$ mkdir mountpint
+	$ ./fuse-google-drive mountpoint
 
 Thanks to:
 	http://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/
