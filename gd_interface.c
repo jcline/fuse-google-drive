@@ -305,5 +305,6 @@ void gdi_destroy(struct gdi_state* state)
 	free(state->clientsecrets);
 	free(state->redirecturi);
 	free(state->clientid);
+	free(state->code);
 	// destroy state->curlmulti?
 }
