@@ -152,6 +152,12 @@ char* load_file(const char* path)
 	return result;
 }
 
+size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
+{
+	printf("data:\n%s\n", (char*)data);
+	return size*nmemb;
+}
+
 /** Reads in the clientsecrets from a file.
  *
  */
@@ -205,24 +211,32 @@ int gdi_init(struct gdi_state* state)
 	if(state->clientid == NULL)
 		goto malloc_fail2;
 
+	if(curl_global_init(CURL_GLOBAL_SSL) != 0)
+		goto curl_init_fail3;
+
 	state->curlmulti = curl_multi_init();
 	if(state->curlmulti == NULL)
-		goto multi_init_fail3;
+		goto multi_init_fail4;
 
 	/* Authenticate the application */
-	char response_type[] = "?response_type=code";
+	char response_type_code[] = "?response_type=code";
+	char codeparameter[] = "code=";
 	char redirect[] = "&redirect_uri=";
 	char scope[] = "&scope=";
 	char clientid[] = "&client_id=";
+	char clientsecret[] = "&client_secret=";
+	char granttype[] = "&grant_type=authorization_code";
 
 	// Calculating the correct value is more trouble than it is worth
 	char *complete_authuri = (char *) malloc(sizeof(char) * 3000);
+	if(complete_authuri == NULL)
+		goto malloc_fail5;
 	char *iter = complete_authuri;
 
 	// Create the authentication request URI
 	// There might be a cleaner way to do this...
 	iter += add_unencoded_str(iter, auth_uri, sizeof(auth_uri));
-	iter += add_unencoded_str(iter, response_type, sizeof(response_type));
+	iter += add_unencoded_str(iter, response_type_code, sizeof(response_type_code));
 	iter += add_unencoded_str(iter, scope, sizeof(scope));
 
 	iter += add_encoded_uri(iter, email_scope, sizeof(email_scope));
@@ -246,7 +260,7 @@ int gdi_init(struct gdi_state* state)
 	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
 
 	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri);
-	free(complete_authuri);
+	//memset((void*)auth_uri, 0, iter - auth_uri);
 
 	printf("\n\nOnce you authenticate, Google should give you a code, please paste it here:\n");
 
@@ -254,6 +268,8 @@ int gdi_init(struct gdi_state* state)
 	size_t i = 0;
 	size_t done = 0;
 	state->code = (char *) malloc(sizeof(char)*length);
+	if(state->code == NULL)
+		goto malloc_fail6;
 	char *code = state->code;
 	while(i < length && !done)
 	{
@@ -278,15 +294,49 @@ int gdi_init(struct gdi_state* state)
 	if(i!=30) // Is the code actually always this length?
 	{
 		printf("The code you entered, %s, is not the right length. Please retry mounting.\n", code);
-		goto code_fail5;
+		goto code_fail7;
 	}
 
+	CURL *auth_handle = curl_easy_init();
+	if(auth_handle == NULL)
+		goto curl_fail7;
+
+	// TODO: errors
+	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+
+	// Using complete_authuri to store post data
+	iter = complete_authuri;
+	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
+	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
+	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
+	iter += add_encoded_uri(iter, state->clientid, strlen(state->clientid)+1);
+	iter += add_unencoded_str(iter, clientsecret, sizeof(clientsecret));
+	iter += add_encoded_uri(iter, state->clientsecrets, strlen(state->clientsecrets)+1);
+	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
+	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
+	iter += add_unencoded_str(iter, granttype, sizeof(granttype));
+	printf("\n%s\n", complete_authuri);
+
+	curl_easy_setopt(auth_handle, CURLOPT_URL, token_uri);
+	printf("%s\n", auth_uri);
+	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri);
+	curl_easy_setopt(auth_handle, CURLOPT_WRITEFUNCTION, curl_post_callback);
+	curl_easy_perform(auth_handle);
+	curl_easy_cleanup(auth_handle);
+
+
 	goto init_success;
-code_fail5:
+// These labels are the name of what failed followed by number of things to clean
+curl_fail7:
+code_fail7:
 	free(state->code);
-malloc_fail4: // malloc state->code failed
-	// destroy state->curlmulti?
-multi_init_fail3: // curl_multi_init() failed
+malloc_fail6: // malloc state->code failed
+	free(complete_authuri);
+malloc_fail5: // malloc complete_authuri failed
+	curl_multi_cleanup(state->curlmulti);
+multi_init_fail4: // curl_multi_init() failed
+	curl_global_cleanup();
+curl_init_fail3:
 	free(state->clientid);
 malloc_fail2: // malloc clientid failed
 	free(state->redirecturi);
@@ -297,6 +347,7 @@ init_fail:
 	return 1;
 
 init_success:
+	free(complete_authuri);
 	return 0;
 }
 
@@ -306,5 +357,7 @@ void gdi_destroy(struct gdi_state* state)
 	free(state->redirecturi);
 	free(state->clientid);
 	free(state->code);
-	// destroy state->curlmulti?
+	//TODO: make sure all easy handles were first removed
+	curl_multi_cleanup(state->curlmulti);
+	curl_global_cleanup();
 }
