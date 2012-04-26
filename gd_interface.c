@@ -275,8 +275,14 @@ int gdi_init(struct gdi_state* state)
 	}
 
 	code[i] = 0;
+	if(i!=30) // Is the code actually always this length?
+	{
+		printf("The code you entered, %s, is not the right length. Please retry mounting.\n", code);
+		goto code_fail5;
+	}
 
 	goto init_success;
+code_fail5:
 malloc_fail4: // malloc state->code failed
 	// destroy state->curlmulti?
 multi_init_fail3: // curl_multi_init() failed
