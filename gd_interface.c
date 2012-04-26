@@ -195,31 +195,19 @@ int gdi_init(struct gdi_state* state)
 {
 	state->clientsecrets = gdi_load_clientsecrets("clientsecrets");
 	if(state->clientsecrets == NULL)
-		return 1;
+		goto init_fail;
 
 	state->redirecturi = gdi_load_redirecturi("redirecturi");
 	if(state->redirecturi == NULL)
-	{
-		free(state->clientsecrets);
-		return 1;
-	}
+		goto malloc_fail1;
 
 	state->clientid = gdi_load_clientid("clientid");
 	if(state->clientid == NULL)
-	{
-		free(state->clientsecrets);
-		free(state->redirecturi);
-		return 1;
-	}
+		goto malloc_fail2;
 
 	state->curlmulti = curl_multi_init();
 	if(state->curlmulti == NULL)
-	{
-		free(state->clientsecrets);
-		free(state->redirecturi);
-		free(state->clientid);
-		return 1;
-	}
+		goto multi_init_fail3;
 
 	/* Authenticate the application */
 	char response_type[] = "?response_type=code";
@@ -260,6 +248,48 @@ int gdi_init(struct gdi_state* state)
 	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri);
 	free(complete_authuri);
 
+	printf("\n\nOnce you authenticate, Google should give you a code, please paste it here:\n");
+
+	size_t length = 45;
+	size_t i = 0;
+	size_t done = 0;
+	state->code = (char *) malloc(sizeof(char)*length);
+	char *code = state->code;
+	while(i < length && !done)
+	{
+		char c = getc(stdin);
+		switch(c)
+		{
+			case ' ':
+				break;
+			case '\t':
+				break;
+			case '\n':
+				done = 1;
+				break;
+			default:
+				code[i] = c;
+				++i;
+				break;
+		}
+	}
+
+	code[i] = 0;
+
+	goto init_success;
+malloc_fail4: // malloc state->code failed
+	// destroy state->curlmulti?
+multi_init_fail3: // curl_multi_init() failed
+	free(state->clientid);
+malloc_fail2: // malloc clientid failed
+	free(state->redirecturi);
+malloc_fail1: // malloc redirecturi failed
+	free(state->clientsecrets);
+
+init_fail:
+	return 1;
+
+init_success:
 	return 0;
 }
 
@@ -267,4 +297,6 @@ void gdi_destroy(struct gdi_state* state)
 {
 	free(state->clientsecrets);
 	free(state->redirecturi);
+	free(state->clientid);
+	// destroy state->curlmulti?
 }

@@ -28,6 +28,7 @@ struct gdi_state {
 	char *redirecturi;
 	char *clientid;
 	CURLM *curlmulti;
+	char *code;
 };
 
 char* urlencode (const char *url, size_t* length);
