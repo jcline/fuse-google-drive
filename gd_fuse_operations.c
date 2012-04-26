@@ -18,6 +18,7 @@
 
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
+#include <string.h>
 #include "gd_interface.h"
 
 /** Get file attributes.
@@ -407,6 +408,9 @@ int main(int argc, char* argv[])
 {
 	int fuse_stat;
 	struct gd_state gd_data;
+
+	char url[] = "http://www.google.com";
+	urlencode(url, strlen(url));
 
 	// Start fuse
 	fuse_stat = fuse_main(argc, argv, &gd_oper, &gd_data);

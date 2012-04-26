@@ -16,4 +16,84 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "gd_interface.h"
+
+char urlunsafe[] = 
+{
+	'$',
+	'&',
+	'+',
+	',',
+	'/',
+	':',
+	';',
+	'=',
+	'?',
+	'@',
+	' ',
+	'"',
+	'<',
+	'>',
+	'#',
+	'%',
+	'{',
+	'}',
+	'|',
+	'\\',
+	'^',
+	'~',
+	'[',
+	']',
+	'`',
+	'\0'
+};
+
+char* urlencode (const char *url, size_t length)
+{
+	size_t i;
+	size_t j;
+	size_t count = 0;
+	for(i = 0; i < length; ++i)
+	{
+		for(j = 0; j < sizeof(urlunsafe); ++j)
+		{
+			if(url[i] == url[j])
+			{
+				++count;
+				break;
+			}
+		}
+	}
+
+	char *result = (char *) malloc( sizeof(char) * (length + count*3));
+	if(result == NULL)
+		return NULL;
+
+	char *iter = result;
+	for(i = 0; i < length; ++i)
+	{
+		for(j = 0; j < sizeof(urlunsafe); ++j)
+		{
+			if(url[i] == urlunsafe[j])
+			{
+				*iter = '%';
+				++iter;
+				sprintf(iter, "%02X", urlunsafe[j]);
+				iter+=2;
+				break;
+			}
+		}
+		if(j == sizeof(urlunsafe))
+		{
+			*iter = url[i];
+			++iter;
+		}
+	}
+
+	result[(length+count*3)-1] = 0;
+	return result;
+}

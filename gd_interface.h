@@ -19,6 +19,9 @@
 #ifndef _GOOGLE_DRIVE_INTERFACE_H
 #define _GOOGLE_DRIVE_INTERFACE_H
 
+#include <stdlib.h>
+
+char* urlencode (const char *url, size_t length);
 
 
 #endif
