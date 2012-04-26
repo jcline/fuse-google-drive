@@ -22,6 +22,7 @@ AC_CHECK_LIB([fuse], [fuse_main],
 	     [AC_MSG_ERROR([FUSE library is missing])],
 	     )
 PKG_CHECK_MODULES([curl], [libcurl])
+PKG_CHECK_MODULES([json], [json])
 
 # Checks for header files.
 CFLAGS="$CFLAGS $FUSE_CFLAGS"
