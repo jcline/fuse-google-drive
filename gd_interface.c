@@ -16,6 +16,8 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <curl/curl.h>
+#include <curl/multi.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -160,7 +162,18 @@ int gdi_init(struct gdi_state* state)
 
 	state->redirecturi = gdi_load_redirecturi("redirecturi");
 	if(state->redirecturi == NULL)
+	{
+		free(state->clientsecrets);
 		return 1;
+	}
+
+	state->curlmulti = curl_multi_init();
+	if(state->curlmulti == NULL)
+	{
+		free(state->clientsecrets);
+		free(state->redirecturi);
+		return 1;
+	}
 
 	return 0;
 }

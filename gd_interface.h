@@ -20,10 +20,13 @@
 #define _GOOGLE_DRIVE_INTERFACE_H
 
 #include <stdlib.h>
+#include <curl/curl.h>
+#include <curl/multi.h>
 
 struct gdi_state {
 	char *clientsecrets;
 	char *redirecturi;
+	CURLM *curlmulti;
 };
 
 char* urlencode (const char *url, size_t length);

@@ -4,6 +4,7 @@ Currently in preliminary development stages.
 
 Dependencies:
 	fuse
+	curl
 
 Build Dependencies:
 	autotools
