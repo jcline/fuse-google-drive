@@ -283,6 +283,7 @@ int gdi_init(struct gdi_state* state)
 
 	goto init_success;
 code_fail5:
+	free(state->code);
 malloc_fail4: // malloc state->code failed
 	// destroy state->curlmulti?
 multi_init_fail3: // curl_multi_init() failed
