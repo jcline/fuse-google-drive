@@ -159,10 +159,6 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	struct json_object *json = json_tokener_parse(data);
 	printf("json: %s\n", json_object_to_json_string(json)); 
 	
-	char *token_type;
-	char *access_token;
-	char *refresh_token;
-
 	// TODO: Errors
 	struct json_object *tmp = json_object_object_get(json, "access_token");
 	state->access_token = json_object_get_string(tmp);
