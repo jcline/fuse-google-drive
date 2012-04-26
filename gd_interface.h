@@ -29,6 +29,12 @@ struct gdi_state {
 	char *clientid;
 	CURLM *curlmulti;
 	char *code;
+
+	char *access_token;
+	char *id_token;
+	char *refresh_token;
+	long token_expiration;
+	char *token_type;
 };
 
 char* urlencode (const char *url, size_t* length);

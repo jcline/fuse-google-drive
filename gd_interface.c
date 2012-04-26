@@ -20,6 +20,7 @@
 #include <curl/multi.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <json.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -154,7 +155,34 @@ char* load_file(const char* path)
 
 size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 {
-	printf("data:\n%s\n", (char*)data);
+	struct gdi_state *state = (struct gdi_state*) store;
+	struct json_object *json = json_tokener_parse(data);
+	printf("json: %s\n", json_object_to_json_string(json)); 
+	
+	char *token_type;
+	char *access_token;
+	char *refresh_token;
+
+	// TODO: Errors
+	struct json_object *tmp = json_object_object_get(json, "access_token");
+	state->access_token = json_object_get_string(tmp);
+	
+	tmp = json_object_object_get(json, "token_type");
+	state->token_type = json_object_get_string(tmp);
+	printf("\n%s\n", state->token_type);
+
+	tmp = json_object_object_get(json, "refresh_token");
+	state->refresh_token = json_object_get_string(tmp);
+	printf("\n%s\n", state->refresh_token);
+
+	tmp = json_object_object_get(json, "id_token");
+	state->id_token = json_object_get_string(tmp);
+	printf("\n%s\n", state->id_token);
+
+	tmp = json_object_object_get(json, "expires_in");
+	state->token_expiration = *json_object_get_string(tmp);
+	printf("\n%d\n", state->token_expiration);
+
 	return size*nmemb;
 }
 
@@ -321,6 +349,7 @@ int gdi_init(struct gdi_state* state)
 	printf("%s\n", auth_uri);
 	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri);
 	curl_easy_setopt(auth_handle, CURLOPT_WRITEFUNCTION, curl_post_callback);
+	curl_easy_setopt(auth_handle, CURLOPT_WRITEDATA, state);
 	curl_easy_perform(auth_handle);
 	curl_easy_cleanup(auth_handle);
 
