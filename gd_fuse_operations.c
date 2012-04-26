@@ -397,11 +397,11 @@ struct fuse_operations gd_oper = {
  *  Store any state about this mount in this structure.
  *
  *  root: The path to the mount point of the drive.
- *  TODO:
- *    Tokens - should they be char*s? 
+ *  credentials: Struct which stores necessary credentials for this mount.
  */
 struct gd_state {
 	char* root;
+	struct gdi_state credentials;
 };
 
 int main(int argc, char* argv[])
@@ -409,8 +409,9 @@ int main(int argc, char* argv[])
 	int fuse_stat;
 	struct gd_state gd_data;
 
-	char url[] = "http://www.google.com";
-	urlencode(url, strlen(url));
+	int ret = gdi_init(&gd_data.credentials);
+	if(ret != 0)
+		return ret;
 
 	// Start fuse
 	fuse_stat = fuse_main(argc, argv, &gd_oper, &gd_data);

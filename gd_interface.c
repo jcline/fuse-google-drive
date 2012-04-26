@@ -16,9 +16,12 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "gd_interface.h"
 
@@ -96,4 +99,55 @@ char* urlencode (const char *url, size_t length)
 
 	result[(length+count*3)-1] = 0;
 	return result;
+}
+
+
+int gdi_get_credentials()
+{
+	return 0;
+}
+
+/** Reads in the clientsecrets from a file.
+ *
+ */
+char* gdi_load_clientsecrets(const char *path)
+{
+	FILE *f = fopen(path, "rb");
+	if(f == NULL)
+	{
+		printf("fopen(\"%s\"): %s\n", path, strerror(errno));
+		return NULL;
+	}
+
+	fseek(f, 0, SEEK_END);
+	size_t size = ftell(f);
+	rewind(f);
+	char *result = (char *) malloc(sizeof(char) * size);
+	if(result == NULL)
+	{
+		perror("malloc");
+		return NULL;
+	}
+
+	fread(result, 1, size, f);
+	if(ferror(f))
+	{
+		printf("fread(\"%s\"): %s\n", path, strerror(errno));
+		return NULL;
+	}
+
+	return result;
+}
+
+int gdi_init(struct gdi_state* state)
+{
+	state->clientsecrets = gdi_load_clientsecrets("clientsecrets");
+	if(state->clientsecrets == NULL)
+		return 1;
+
+	return 0;
+}
+
+void gdi_destroy()
+{
 }

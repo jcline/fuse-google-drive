@@ -21,7 +21,16 @@
 
 #include <stdlib.h>
 
+struct gdi_state {
+	char *clientsecrets;
+};
+
 char* urlencode (const char *url, size_t length);
 
+int gdi_get_credentials();
+char* gdi_load_clientsecrets(const char *path);
+
+int gdi_init();
+void gdi_destroy();
 
 #endif
