@@ -10,9 +10,9 @@ Build Dependencies:
 	make
 
 Compilation:
-	./autogen.sh
-	./configure
-	make
+	$ ./autogen.sh
+	$ ./configure
+	$ make
 
 Usage:
 	mkdir mountpint
