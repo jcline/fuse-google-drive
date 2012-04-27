@@ -48,6 +48,6 @@ int gdi_init(struct gdi_state *state);
 void gdi_destroy(struct gdi_state *state);
 
 /* Interface for various operations */
-char **gdi_get_file_list(const char *path, struct fuse_file_info *fileinfo);
+char **gdi_get_file_list(const char *path, struct gdi_state *state);
 
 #endif

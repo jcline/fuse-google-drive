@@ -24,6 +24,17 @@
 #include <sys/stat.h>
 #include "gd_interface.h"
 
+/**
+ *  Store any state about this mount in this structure.
+ *
+ *  root: The path to the mount point of the drive.
+ *  credentials: Struct which stores necessary credentials for this mount.
+ */
+struct gd_state {
+	char* root;
+	struct gdi_state gdi_data;
+};
+
 /** Get file attributes.
  *
  */
@@ -265,8 +276,8 @@ int gd_readdir (const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
-
-	char **list = gdi_get_file_list(path, fileinfo);
+	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
+	char **list = gdi_get_file_list(path, state);
 	char **iter = list;
 	while((*iter) != NULL)
 	{
@@ -301,7 +312,7 @@ int gd_fsyncdir (const char *path, int datasync, struct fuse_file_info *fileinfo
  */
 void *gd_init (struct fuse_conn_info *conn)
 {
-	return NULL;
+	return ((struct gd_state *) fuse_get_context()->private_data);
 }
 
 /** Clean up filesystem
@@ -415,7 +426,7 @@ struct fuse_operations gd_oper = {
 	.readdir     = gd_readdir,
 	//.releasedir  = gd_releasedir,
 	//.fsyncdir    = gd_fsyncdir,
-	//.init        = gd_init,
+	.init        = gd_init,
 	//.destroy     = gd_destroy,
 	//.access      = gd_access,
 	//.create      = gd_create,
@@ -427,32 +438,21 @@ struct fuse_operations gd_oper = {
 	//.poll        = gd_poll,
 };
 
-/**
- *  Store any state about this mount in this structure.
- *
- *  root: The path to the mount point of the drive.
- *  credentials: Struct which stores necessary credentials for this mount.
- */
-struct gd_state {
-	char* root;
-	struct gdi_state gdi_data;
-};
-
 int main(int argc, char* argv[])
 {
 	int fuse_stat;
 	struct gd_state gd_data;
 
-	//int ret = gdi_init(&gd_data.gdi_data);
-	//if(ret != 0)
-		//return ret;
+	int ret = gdi_init(&gd_data.gdi_data);
+	if(ret != 0)
+		return ret;
 
 	// Start fuse
 	fuse_stat = fuse_main(argc, argv, &gd_oper, &gd_data);
 	/*  When we get here, fuse has finished.
 	 *  Do any necessary cleanups.
 	 */
-	//gdi_destroy(&gd_data.gdi_data);
+	gdi_destroy(&gd_data.gdi_data);
 
 	return fuse_stat;
 }

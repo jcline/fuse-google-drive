@@ -390,6 +390,9 @@ int gdi_init(struct gdi_state* state)
 	curl_easy_perform(auth_handle); // POST
 	curl_easy_cleanup(auth_handle); // cleanup
 
+	printf("%s\n", state->access_token);
+
+	gdi_get_file_list("/", state);
 
 	goto init_success;
 // These labels are the name of what failed followed by number of things to clean
@@ -428,12 +431,51 @@ void gdi_destroy(struct gdi_state* state)
 	curl_global_cleanup();
 }
 
-char **gdi_get_file_list(const char *path, struct fuse_file_info *fileinfo)
+size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
 {
-	char **list = (char**)malloc(sizeof(char*)*2);
-	list[0] = (char*)malloc(sizeof(char)*5);
-	strcpy(list[0], "test");
+	printf("%s\n", (char*) data);
+	char **list = *((char***)store);
+	list = (char**) malloc(sizeof(char*)*2);
 	list[1] = NULL;
+
+	//list[0] = (char*) data;
+	list[0] = (char*)malloc(sizeof(char)*100);
+	strncpy(list[0], (char*)data, 99);
+
+	return size*nmemb;
+}
+
+char **gdi_get_file_list(const char *path, struct gdi_state *state)
+{
+	char **list;
+	char u[] = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true";
+	char oauth_str[] = "Authorization: OAuth ";
+	char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) +
+				30));
+	char *iter = header_str;
+	iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
+	iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token));
+
+	struct curl_slist *headers;
+	headers = curl_slist_append(headers, header_str);
+
+	CURL* handle = curl_easy_init();
+	curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
+	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
+	curl_easy_setopt(handle, CURLOPT_URL, u); // set URI
+	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
+	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
+	//curl_easy_setopt(handle, CURLOPT_POSTFIELDS, complete_authuri); // BODY
+	// set curl_post_callback for parsing the server response
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
+	// set curl_post_callback's last parameter to state
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &list);
+
+
+	curl_easy_perform(handle); // GET
+	curl_easy_cleanup(handle); // cleanup
+	curl_slist_free_all(headers);
+	free(header_str);
 
 	return list;
 }
