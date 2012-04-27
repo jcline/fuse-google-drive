@@ -66,6 +66,14 @@ char urlunsafe[] =
 	'`'
 };
 
+/** Escapes unsafe characters for adding to a URI.
+ *
+ *  @url the string to escape
+ *  @length
+ *          precondition:  strlen(url)
+ *          postcondition: strlen(escaped url)
+ *  @returns escaped, null terminated string
+ */
 char* urlencode (const char *url, size_t *length)
 {
 	size_t i;
@@ -156,6 +164,9 @@ char* load_file(const char* path)
 	return result;
 }
 
+/** Callback for libcurl for parsing json auth tokens.
+ *
+ */
 size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 {
 	struct gdi_state *state = (struct gdi_state*) store;
