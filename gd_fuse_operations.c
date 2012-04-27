@@ -17,8 +17,11 @@
 */
 
 #define FUSE_USE_VERSION 26
+#include <dirent.h>
+#include <errno.h>
 #include <fuse.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "gd_interface.h"
 
 /** Get file attributes.
@@ -26,6 +29,22 @@
  */
 int gd_getattr (const char *path, struct stat *statbuf)
 {
+
+	struct fuse_context *fc = fuse_get_context();
+	memset(statbuf, 0, sizeof(struct stat));
+	if( strcmp("/", path) == 0)
+	{
+		statbuf->st_mode = S_IFDIR | 0700;
+		statbuf->st_nlink=2;
+	}
+	else
+	{
+		statbuf->st_mode = S_IFREG | 0700;
+		statbuf->st_nlink=1;
+	}
+	statbuf->st_uid = fc->uid;
+	statbuf->st_gid = fc->gid;
+
 	return 0;
 }
 
@@ -243,6 +262,21 @@ int gd_opendir (const char *path, struct fuse_file_info *fileinfo)
  */
 int gd_readdir (const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fileinfo)
 {
+
+	filler(buf, ".", NULL, 0);
+	filler(buf, "..", NULL, 0);
+
+	char **list = gdi_get_file_list(path, fileinfo);
+	char **iter = list;
+	while((*iter) != NULL)
+	{
+		if(filler(buf, *iter, NULL, 0))
+		{
+			fprintf(stderr, "readdir() filler()\n");
+			return -ENOMEM;
+		}
+		++iter;
+	}
 	return 0;
 }
 
@@ -350,7 +384,7 @@ int gd_poll (const char *path, struct fuse_file_info *fileinfo, struct fuse_poll
 // Only uncomment these assignments once an operation's function has been
 // fleshed out.
 struct fuse_operations gd_oper = {
-	//.getattr     = gd_getattr,
+	.getattr     = gd_getattr,
 	//.readlink    = gd_readlink,
 	// getdir() deprecated, use readdir()
 	.getdir        = NULL,
@@ -366,8 +400,8 @@ struct fuse_operations gd_oper = {
 	//.truncate    = gd_truncate,
 	// utime() deprecated, use utimens
 	.utime         = NULL,
-	//.open        = gd_open,
-	//.read        = gd_read,
+	.open        = gd_open,
+	.read        = gd_read,
 	//.write       = gd_write,
 	//.statfs      = gd_statfs,
 	//.flush       = gd_flush,
@@ -378,7 +412,7 @@ struct fuse_operations gd_oper = {
 	//.listxattr   = gd_listxattr,
 	//.removexattr = gd_removexattr,
 	//.opendir     = gd_opendir,
-	//.readdir     = gd_readdir,
+	.readdir     = gd_readdir,
 	//.releasedir  = gd_releasedir,
 	//.fsyncdir    = gd_fsyncdir,
 	//.init        = gd_init,
@@ -409,16 +443,16 @@ int main(int argc, char* argv[])
 	int fuse_stat;
 	struct gd_state gd_data;
 
-	int ret = gdi_init(&gd_data.gdi_data);
-	if(ret != 0)
-		return ret;
+	//int ret = gdi_init(&gd_data.gdi_data);
+	//if(ret != 0)
+		//return ret;
 
 	// Start fuse
 	fuse_stat = fuse_main(argc, argv, &gd_oper, &gd_data);
 	/*  When we get here, fuse has finished.
 	 *  Do any necessary cleanups.
 	 */
-	gdi_destroy(&gd_data.gdi_data);
+	//gdi_destroy(&gd_data.gdi_data);
 
 	return fuse_stat;
 }

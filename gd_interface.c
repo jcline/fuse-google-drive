@@ -427,3 +427,13 @@ void gdi_destroy(struct gdi_state* state)
 	curl_multi_cleanup(state->curlmulti);
 	curl_global_cleanup();
 }
+
+char **gdi_get_file_list(const char *path, struct fuse_file_info *fileinfo)
+{
+	char **list = (char**)malloc(sizeof(char*)*2);
+	list[0] = (char*)malloc(sizeof(char)*5);
+	strcpy(list[0], "test");
+	list[1] = NULL;
+
+	return list;
+}

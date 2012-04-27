@@ -19,9 +19,10 @@
 #ifndef _GOOGLE_DRIVE_INTERFACE_H
 #define _GOOGLE_DRIVE_INTERFACE_H
 
-#include <stdlib.h>
 #include <curl/curl.h>
 #include <curl/multi.h>
+#include <fuse.h>
+#include <stdlib.h>
 
 struct gdi_state {
 	char *clientsecrets;
@@ -45,5 +46,8 @@ char* gdi_load_redirecturi(const char *path);
 
 int gdi_init(struct gdi_state *state);
 void gdi_destroy(struct gdi_state *state);
+
+/* Interface for various operations */
+char **gdi_get_file_list(const char *path, struct fuse_file_info *fileinfo);
 
 #endif
