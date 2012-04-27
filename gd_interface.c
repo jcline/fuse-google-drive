@@ -32,6 +32,9 @@ const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
 const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
 const char drive_scope[] = "https://www.googleapis.com/auth/drive.file";
 const char email_scope[] = "https://www.googleapis.com/auth/userinfo.email";
+const char docs_scope[] = "https://docs.google.com/feeds/";
+const char docsguc_scope[] = "https://docs.googleusercontent.com/";
+const char spreadsheets_scope[] = "https://spreadsheets.google.com/feeds/";
 const char profile_scope[] = "https://www.googleapis.com/auth/userinfo.profile";
 
 char urlunsafe[] = 
@@ -157,7 +160,6 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 {
 	struct gdi_state *state = (struct gdi_state*) store;
 	struct json_object *json = json_tokener_parse(data);
-	printf("json: %s\n", json_object_to_json_string(json)); 
 	
 	// TODO: Errors
 	struct json_object *tmp = json_object_object_get(json, "access_token");
@@ -260,12 +262,22 @@ int gdi_init(struct gdi_state* state)
 	iter += add_unencoded_str(iter, scope, sizeof(scope));
 
 	iter += add_encoded_uri(iter, email_scope, sizeof(email_scope));
-
 	*iter = '+';
 	++iter;
 
 	iter += add_encoded_uri(iter, profile_scope, sizeof(profile_scope));
+	*iter = '+';
+	++iter;
 
+	iter += add_encoded_uri(iter, docs_scope, sizeof(docs_scope));
+	*iter = '+';
+	++iter;
+
+	iter += add_encoded_uri(iter, docsguc_scope, sizeof(docsguc_scope));
+	*iter = '+';
+	++iter;
+
+	iter += add_encoded_uri(iter, spreadsheets_scope, sizeof(spreadsheets_scope));
 	*iter = '+';
 	++iter;
 
