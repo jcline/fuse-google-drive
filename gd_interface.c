@@ -80,6 +80,7 @@ char* urlencode (const char *url, size_t *length)
 	size_t j;
 	size_t count = 0;
 	size_t size = *length;
+	// Count the number of characters that need to be escaped
 	for(i = 0; i < size; ++i)
 	{
 		for(j = 0; j < sizeof(urlunsafe); ++j)
@@ -92,17 +93,21 @@ char* urlencode (const char *url, size_t *length)
 		}
 	}
 
+	// Allocate the correct amount of memory for the escaped string
 	char *result = (char *) malloc( sizeof(char) * (size + count*3));
 	if(result == NULL)
 		return NULL;
 
+	// Copy old string into escaped string, escaping where necessary
 	char *iter = result;
 	for(i = 0; i < size; ++i)
 	{
 		for(j = 0; j < sizeof(urlunsafe); ++j)
 		{
+			// We found a character that needs escaping
 			if(url[i] == urlunsafe[j])
 			{
+				// Had a weird issue with sprintf(,"\%%02X,), so I do this instead
 				*iter = '%';
 				++iter;
 				sprintf(iter, "%02X", urlunsafe[j]);
@@ -110,6 +115,7 @@ char* urlencode (const char *url, size_t *length)
 				break;
 			}
 		}
+		// We did not need to escape the current character in url, so just copy it
 		if(j == sizeof(urlunsafe))
 		{
 			*iter = url[i];
@@ -117,9 +123,13 @@ char* urlencode (const char *url, size_t *length)
 		}
 	}
 
+	// Calculate the size of the final string, should be the same as (length+count*3)
 	size = iter - result;
+	// Make sure we null terminate
 	result[size-1] = 0;
+	// Save the new length
 	*length = size;
+
 	return result;
 }
 
@@ -138,9 +148,11 @@ char* load_file(const char* path)
 		return NULL;
 	}
 
+	// Find the size of the file
 	fseek(f, 0, SEEK_END);
 	size_t size = ftell(f);
 	rewind(f);
+
 	char *result = (char *) malloc(sizeof(char) * size);
 	if(result == NULL)
 	{
@@ -148,6 +160,7 @@ char* load_file(const char* path)
 		return NULL;
 	}
 
+	// Read the file in one chunk, possible issue for larger files
 	fread(result, 1, size, f);
 	if(ferror(f))
 	{
@@ -188,6 +201,9 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	tmp = json_object_object_get(json, "expires_in");
 	state->token_expiration = json_object_get_int(tmp);
 
+	// libcurl expects this to "read" as much data as it received from the server
+	// since json-c is doing all the work here, unless it errors we may as well
+	// return the size libcurl gave us for the data
 	return size*nmemb;
 }
 
@@ -215,6 +231,9 @@ char* gdi_load_clientid(const char *path)
 	return load_file(path);
 }
 
+/** Concatenate an urlencoded string with buf.
+ *
+ */
 size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
 {
 	size_t length = size;
@@ -224,6 +243,9 @@ size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
 	return length-1;
 }
 
+/** Effectively strcat() that doesn't need to call strlen(buf).
+ *
+ */
 size_t add_unencoded_str(char *buf, const char *str, const size_t size)
 {
 	memmove(buf, str, size);
@@ -303,10 +325,10 @@ int gdi_init(struct gdi_state* state)
 	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
 
 	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri);
-	//memset((void*)auth_uri, 0, iter - auth_uri);
 
 	printf("\n\nOnce you authenticate, Google should give you a code, please paste it here:\n");
 
+	// Read in the code from Google
 	size_t length = 45;
 	size_t i = 0;
 	size_t done = 0;
@@ -333,21 +355,19 @@ int gdi_init(struct gdi_state* state)
 		}
 	}
 
-	code[i] = 0;
+	code[i] = 0; // Null terminate code
 	if(i!=30) // Is the code actually always this length?
 	{
 		printf("The code you entered, %s, is not the right length. Please retry mounting.\n", code);
 		goto code_fail7;
 	}
 
+	// Prepare and make the request to exchange the code for an access token
 	CURL *auth_handle = curl_easy_init();
 	if(auth_handle == NULL)
 		goto curl_fail7;
 
-	// TODO: errors
-	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
-
-	// Using complete_authuri to store post data
+	// Using complete_authuri to store POST data
 	iter = complete_authuri;
 	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
 	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
@@ -358,15 +378,17 @@ int gdi_init(struct gdi_state* state)
 	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
 	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
 	iter += add_unencoded_str(iter, granttype, sizeof(granttype));
-	printf("\n%s\n", complete_authuri);
 
-	curl_easy_setopt(auth_handle, CURLOPT_URL, token_uri);
-	printf("%s\n", auth_uri);
-	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri);
+	// TODO: errors
+	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
+	curl_easy_setopt(auth_handle, CURLOPT_URL, token_uri); // set URI
+	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri); // BODY
+	// set curl_post_callback for parsing the server response
 	curl_easy_setopt(auth_handle, CURLOPT_WRITEFUNCTION, curl_post_callback);
+	// set curl_post_callback's last parameter to state
 	curl_easy_setopt(auth_handle, CURLOPT_WRITEDATA, state);
-	curl_easy_perform(auth_handle);
-	curl_easy_cleanup(auth_handle);
+	curl_easy_perform(auth_handle); // POST
+	curl_easy_cleanup(auth_handle); // cleanup
 
 
 	goto init_success;
