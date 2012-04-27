@@ -107,7 +107,7 @@ char* urlencode (const char *url, size_t *length)
 	}
 
 	size = iter - result;
-	result[size] = 0;
+	result[size-1] = 0;
 	*length = size;
 	return result;
 }
