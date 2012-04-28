@@ -488,7 +488,7 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
 	iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token));
 
-	struct curl_slist *headers;
+	struct curl_slist *headers = NULL;
 	headers = curl_slist_append(headers, header_str);
 
 	CURL* handle = curl_easy_init();
