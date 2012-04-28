@@ -23,6 +23,7 @@ AC_CHECK_LIB([fuse], [fuse_main],
 	     )
 PKG_CHECK_MODULES([curl], [libcurl])
 PKG_CHECK_MODULES([json], [json])
+PKG_CHECK_MODULES([xml], [libxml-2.0])
 
 # Checks for header files.
 CFLAGS="$CFLAGS $FUSE_CFLAGS"
