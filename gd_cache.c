@@ -24,11 +24,12 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	struct gd_fs_entry_t* entry;
 
 	entry = (struct gd_fs_entry_t*) malloc(sizeof(struct gd_fs_entry_t));
+	if(entry == NULL) {} // TODO: ERROR
 	memset(entry, 0, sizeof(entry));
 
 	size_t length;
 	xmlNodePtr c1, c2;
-	xmlChar *value;
+	xmlChar *value = NULL;
 
 	for(c1 = node->children; c1 != NULL; c1 = c1->next)
 	{
