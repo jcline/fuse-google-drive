@@ -526,13 +526,11 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 			{
 				tmp = gd_fs_entry_from_xml(xmldoc, node);
 				state->head = tmp;
-				tmp->testVal = 1;
 			}
 			else
 			{
 				tmp->next = gd_fs_entry_from_xml(xmldoc, node);
 				tmp = tmp->next;
-				tmp->testVal = 2;
 			}
 		}
 	}
