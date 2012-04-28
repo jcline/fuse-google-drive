@@ -512,7 +512,7 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	//if(iter == NULL)
 	// TODO: errors
 
-	xmlDocPtr xmldoc = xmlParseMemory(iter, resp.len);
+	xmlDocPtr xmldoc = xmlParseMemory(iter, resp.len - (iter - resp.str));
 
 	xmlNodePtr node;
 
