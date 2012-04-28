@@ -24,7 +24,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	struct gd_fs_entry_t* entry;
 
 	entry = (struct gd_fs_entry_t*) malloc(sizeof(struct gd_fs_entry_t));
-	entry->next = NULL;
+	memset(entry, 0, sizeof(entry));
 
 	size_t length;
 	xmlNodePtr c1, c2;
