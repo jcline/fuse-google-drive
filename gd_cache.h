@@ -19,8 +19,11 @@
 #ifndef _GOOGLE_DRIVE_CACHE_H
 #define _GOOGLE_DRIVE_CACHE_H
 
+#include <pthread.h>
+
 // Do we need to represent folders differently from files?
-struct gd_fs_t {
+// For the time being, ignore folders
+struct gd_fs_entry_t {
 	char *author; // the file owner?
 	char *author_email;
 
@@ -33,5 +36,16 @@ struct gd_fs_t {
 	size_t size; // file size in bytes, 'gd:quotaBytesUsed' in XML
 	char *md5; // 'docs:md5Checksum' in XML, might be useful later
 };
+
+// Since hsearch et al are likely not threadsafe we need to use a read write
+// lock to prevent corruption. The write lock should only be taken when we
+// need to add a new item.
+// What to do about removing a file? Just mark the entry as invalid? There is
+// no removal action for hsearch et al.
+struct gd_fs_lock_t {
+	pthread_rwlock_t *lock;
+};
+
+
 
 #endif
