@@ -2,12 +2,17 @@ fuse-google-drive is a fuse filesystem wrapper for Google Drive released under G
 
 Currently in preliminary development stages.
 
+Status:
+	directory listing works, incorrect stat() info
+
 Discussion:
 	#fuse-google-drive on irc.freenode.net
 
 Dependencies:
 	fuse
 	curl
+	json-c aka libjson
+	libxml2
 
 Build Dependencies:
 	autotools
@@ -23,7 +28,8 @@ Usage:
 a new app and generate a client id and client secret for an install application.
 Place the client secret in clientsecret and the redirect URI in redirecturi in
 the same directory as fuse-google-drive. Hopefully a better solution for this
- can be found.
+can be found. You also need to place the string "urn:ietf:wg:oauth:2.0:oob", 
+unquoted, in the file redirecturi.
 
 	$ mkdir mountpint
 	$ ./fuse-google-drive mountpoint
