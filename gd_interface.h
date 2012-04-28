@@ -24,6 +24,8 @@
 #include <fuse.h>
 #include <stdlib.h>
 
+#include "gd_cache.h"
+
 struct gdi_state {
 	char *clientsecrets;
 	char *redirecturi;
@@ -36,6 +38,8 @@ struct gdi_state {
 	char *refresh_token;
 	long token_expiration;
 	char *token_type;
+
+	struct gd_fs_entry_t *head;
 };
 
 char* urlencode (const char *url, size_t* length);
@@ -48,6 +52,6 @@ int gdi_init(struct gdi_state *state);
 void gdi_destroy(struct gdi_state *state);
 
 /* Interface for various operations */
-char **gdi_get_file_list(const char *path, struct gdi_state *state);
+void gdi_get_file_list(const char *path, struct gdi_state *state);
 
 #endif

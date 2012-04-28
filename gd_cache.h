@@ -19,6 +19,7 @@
 #ifndef _GOOGLE_DRIVE_CACHE_H
 #define _GOOGLE_DRIVE_CACHE_H
 
+#include <libxml/tree.h>
 #include <pthread.h>
 
 // Do we need to represent folders differently from files?
@@ -38,6 +39,9 @@ struct gd_fs_entry_t {
 
 
 	// Add some data we can use in getattr()
+
+	// Linked list
+	struct gd_fs_entry_t *next;
 };
 
 // Since hsearch et al are likely not threadsafe we need to use a read write
@@ -49,6 +53,7 @@ struct gd_fs_lock_t {
 	pthread_rwlock_t *lock;
 };
 
+struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node);
 
 
 #endif

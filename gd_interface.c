@@ -245,7 +245,7 @@ size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
 {
 	size_t length = size;
 	char *encoded = urlencode(uri, &length);
-	memmove(buf, encoded, length);
+	memcpy(buf, encoded, length);
 	free(encoded);
 	return length-1;
 }
@@ -255,12 +255,15 @@ size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
  */
 size_t add_unencoded_str(char *buf, const char *str, const size_t size)
 {
-	memmove(buf, str, size);
+	memcpy(buf, str, size);
 	return size-1;
 }
 
 int gdi_init(struct gdi_state* state)
 {
+	state->head = NULL;
+
+
 	state->clientsecrets = gdi_load_clientsecrets("clientsecrets");
 	if(state->clientsecrets == NULL)
 		goto init_fail;
@@ -401,6 +404,7 @@ int gdi_init(struct gdi_state* state)
 
 	gdi_get_file_list("/", state);
 
+
 	goto init_success;
 // These labels are the name of what failed followed by number of things to clean
 curl_fail7:
@@ -463,13 +467,13 @@ size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store
 
 	struct str_t *resp = (struct str_t*) store;
 	resp->str = (char*) realloc(resp->str, resp->len + size*nmemb);
-	memmove(resp->str + resp->len, data, size*nmemb);
+	memcpy(resp->str + resp->len, data, size*nmemb);
 	resp->len += size*nmemb;
 
 	return size*nmemb;
 }
 
-char **gdi_get_file_list(const char *path, struct gdi_state *state)
+void gdi_get_file_list(const char *path, struct gdi_state *state)
 {
 	struct str_t resp;
 	resp.len = 0;
@@ -510,15 +514,26 @@ char **gdi_get_file_list(const char *path, struct gdi_state *state)
 
 	xmlDocPtr xmldoc = xmlParseMemory(iter, resp.len);
 
-	/*
-	char **list = *((char***)store);
-	list = (char**) malloc(sizeof(char*)*2);
-	list[1] = NULL;
+	xmlNodePtr node;
 
-	//list[0] = (char*) data;
-	list[0] = (char*)malloc(sizeof(char)*100);
-	strncpy(list[0], (char*)data, 99);
-	*/
+	struct gd_fs_entry_t *tmp = NULL;
 
-	return list;
+	for(node = xmldoc->children->children; node != NULL; node = node->next)
+	{
+		if(strcmp(node->name, "entry") == 0)
+		{
+			if(!tmp)
+			{
+				tmp = gd_fs_entry_from_xml(xmldoc, node);
+				state->head = tmp;
+				tmp->testVal = 1;
+			}
+			else
+			{
+				tmp->next = gd_fs_entry_from_xml(xmldoc, node);
+				tmp = tmp->next;
+				tmp->testVal = 2;
+			}
+		}
+	}
 }

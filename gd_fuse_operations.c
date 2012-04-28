@@ -22,6 +22,8 @@
 #include <fuse.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#include "gd_cache.h"
 #include "gd_interface.h"
 
 /**
@@ -277,17 +279,19 @@ int gd_readdir (const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
 	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
-	char **list = gdi_get_file_list(path, state);
-	char **iter = list;
-	while((*iter) != NULL)
+
+	struct gd_fs_entry_t *iter = state->head;
+	while(iter != NULL)
 	{
-		if(filler(buf, *iter, NULL, 0))
+
+		if(filler(buf, iter->filename, NULL, 0))
 		{
 			fprintf(stderr, "readdir() filler()\n");
 			return -ENOMEM;
 		}
-		++iter;
+		iter = iter->next;
 	}
+
 	return 0;
 }
 
