@@ -463,9 +463,8 @@ char **gdi_get_file_list(const char *path, struct gdi_state *state)
 	curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
 	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 	curl_easy_setopt(handle, CURLOPT_URL, u); // set URI
-	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
-	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
-	//curl_easy_setopt(handle, CURLOPT_POSTFIELDS, complete_authuri); // BODY
+	curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
+	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
 	// set curl_post_callback for parsing the server response
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
 	// set curl_post_callback's last parameter to state
