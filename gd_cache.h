@@ -35,6 +35,9 @@ struct gd_fs_entry_t {
 
 	size_t size; // file size in bytes, 'gd:quotaBytesUsed' in XML
 	char *md5; // 'docs:md5Checksum' in XML, might be useful later
+
+
+	// Add some data we can use in getattr()
 };
 
 // Since hsearch et al are likely not threadsafe we need to use a read write

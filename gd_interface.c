@@ -25,8 +25,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <libxml/tree.h>
 
 #include "gd_interface.h"
+#include "gd_cache.h"
+
+struct str_t {
+	char *str;
+	size_t len;
+};
 
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
 const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
@@ -431,22 +438,43 @@ void gdi_destroy(struct gdi_state* state)
 	curl_global_cleanup();
 }
 
+size_t remove_newlines(char *str, size_t length)
+{
+	size_t scan_iter, move_iter;
+	for(scan_iter = 0, move_iter = 0; scan_iter < length; ++scan_iter)
+	{
+		if(scan_iter == '\0')
+		{
+			str[move_iter] = 0;
+			break;
+		}
+		else if(scan_iter != '\n')
+		{
+			str[move_iter] = str[scan_iter];
+			++move_iter;
+		}
+	}
+
+	return move_iter+1;
+}
+
 size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
 {
-	printf("%s\n", (char*) data);
-	char **list = *((char***)store);
-	list = (char**) malloc(sizeof(char*)*2);
-	list[1] = NULL;
 
-	//list[0] = (char*) data;
-	list[0] = (char*)malloc(sizeof(char)*100);
-	strncpy(list[0], (char*)data, 99);
+	struct str_t *resp = (struct str_t*) store;
+	resp->str = (char*) realloc(resp->str, resp->len + size*nmemb);
+	memmove(resp->str + resp->len, data, size*nmemb);
+	resp->len += size*nmemb;
 
 	return size*nmemb;
 }
 
 char **gdi_get_file_list(const char *path, struct gdi_state *state)
 {
+	struct str_t resp;
+	resp.len = 0;
+	resp.str = NULL;
+
 	char **list;
 	char u[] = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true";
 	char oauth_str[] = "Authorization: OAuth ";
@@ -468,13 +496,29 @@ char **gdi_get_file_list(const char *path, struct gdi_state *state)
 	// set curl_post_callback for parsing the server response
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
 	// set curl_post_callback's last parameter to state
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &list);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &resp);
 
 
 	curl_easy_perform(handle); // GET
 	curl_easy_cleanup(handle); // cleanup
 	curl_slist_free_all(headers);
 	free(header_str);
+
+	iter = strstr(resp.str, "<feed");
+	//if(iter == NULL)
+	// TODO: errors
+
+	xmlDocPtr xmldoc = xmlParseMemory(iter, resp.len);
+
+	/*
+	char **list = *((char***)store);
+	list = (char**) malloc(sizeof(char*)*2);
+	list[1] = NULL;
+
+	//list[0] = (char*) data;
+	list[0] = (char*)malloc(sizeof(char)*100);
+	strncpy(list[0], (char*)data, 99);
+	*/
 
 	return list;
 }
