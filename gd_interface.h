@@ -45,8 +45,6 @@ struct gdi_state {
 char* urlencode (const char *url, size_t* length);
 
 int gdi_get_credentials();
-char* gdi_load_clientsecrets(const char *path);
-char* gdi_load_redirecturi(const char *path);
 
 int gdi_init(struct gdi_state *state);
 void gdi_destroy(struct gdi_state *state);

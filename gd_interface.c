@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/stat.h> // mkdir
 #include <unistd.h>
 #include <libxml/tree.h>
 
@@ -146,12 +147,24 @@ int gdi_get_credentials()
 	return 0;
 }
 
-char* load_file(const char* path)
+char* load_file(const char* path, const char* name)
 {
-	FILE *f = fopen(path, "rb");
+	size_t pathlen = strlen(path);
+	size_t namelen = strlen(name);
+	char *full_name = (char*) malloc(sizeof(char) * (pathlen + namelen));
+	if(full_name == NULL)
+	{
+		perror("malloc");
+		return NULL;
+	}
+
+	memcpy(full_name, path, pathlen);
+	memcpy(full_name + pathlen, name, namelen);
+
+	FILE *f = fopen(full_name, "rb");
 	if(f == NULL)
 	{
-		printf("fopen(\"%s\"): %s\n", path, strerror(errno));
+		printf("fopen(\"%s\"): %s\n", full_name, strerror(errno));
 		return NULL;
 	}
 
@@ -171,7 +184,7 @@ char* load_file(const char* path)
 	fread(result, 1, size, f);
 	if(ferror(f))
 	{
-		printf("fread(\"%s\"): %s\n", path, strerror(errno));
+		printf("fread(\"%s\"): %s\n", full_name, strerror(errno));
 		return NULL;
 	}
 
@@ -214,28 +227,52 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	return size*nmemb;
 }
 
+void print_api_info(const char* path)
+{
+	printf("If you are seeing this then fuse-google-drive was unable to ");
+	printf("find the files it needs in $XDG_CONFIG_HOME/fuse-google-drive/. ");
+	printf("You need to go to https://code.google.com/apis/console/ then login ");
+	printf("and create an installed application project. Select the Google Drive ");
+	printf("API and generate the necessary tokens. Then, place the clientsecrets ");
+	printf("code in $XDG_CONFIG_HOME/fuse-google-drive/clientsecrets and place ");
+	printf("the clientid in the same folder, but in the file 'clientid'.\n");
+
+	int ret = mkdir(path, S_IRWXU);
+	if(ret == 0)
+	{
+		printf("\nWe have created the folder %s for you to place these files.", path);
+		printf("Please ensure there are no newlines or whitespace before or after ");
+		printf("the codes in these files.\n");
+	}
+
+
+}
+
 /** Reads in the clientsecrets from a file.
  *
  */
-char* gdi_load_clientsecrets(const char *path)
+char* gdi_load_clientsecrets(const char *path, const char *name)
 {
-	return load_file(path);
+	char *ret = load_file(path, name);
+	if(ret == NULL)
+		print_api_info(path);
+	return ret;
 }
 
 /** Reads in the redirection URI from a file.
  *
  */
-char* gdi_load_redirecturi(const char *path)
+char* gdi_load_redirecturi(const char *path, const char *name)
 {
-	return load_file(path);
+	return load_file(path, name);
 }
 
 /** Reads in the client id from a file.
  *
  */
-char* gdi_load_clientid(const char *path)
+char* gdi_load_clientid(const char *path, const char *name)
 {
-	return load_file(path);
+	return load_file(path, name);
 }
 
 /** Concatenate an urlencoded string with buf.
@@ -263,16 +300,22 @@ int gdi_init(struct gdi_state* state)
 {
 	state->head = NULL;
 
+	char *xdg_conf = getenv("XDG_CONFIG_HOME");
+	char *pname = "/fuse-google-drive/";
+	char *full_path = (char*) malloc(sizeof(char) * (strlen(xdg_conf) + strlen(pname)));
+	//TODO error
+	memcpy(full_path, xdg_conf, strlen(xdg_conf));
+	memcpy(full_path + strlen(xdg_conf), pname, strlen(pname));
 
-	state->clientsecrets = gdi_load_clientsecrets("clientsecrets");
+	state->clientsecrets = gdi_load_clientsecrets(full_path, "clientsecrets");
 	if(state->clientsecrets == NULL)
 		goto init_fail;
 
-	state->redirecturi = gdi_load_redirecturi("redirecturi");
+	state->redirecturi = gdi_load_redirecturi(full_path, "redirecturi");
 	if(state->redirecturi == NULL)
 		goto malloc_fail1;
 
-	state->clientid = gdi_load_clientid("clientid");
+	state->clientid = gdi_load_clientid(full_path, "clientid");
 	if(state->clientid == NULL)
 		goto malloc_fail2;
 
