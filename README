@@ -34,6 +34,7 @@ $XDG_CONFIG_HOME/fuse-google-drive/clientsecrets
 resepectively. You should `chmod 700 $XDG_CONFIG_HOME/fuse-google-drive` as well.
 If the folder does not exist at runtime, a helpful message is printed and the
 directory is created with the correct permissions if possible.
+Note: If $XDG_CONFIG_HOME is unset on your system, it defaults to ~/.config/.
 
 	$ mkdir mountpint
 	$ ./fuse-google-drive mountpoint
