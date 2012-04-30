@@ -4,6 +4,8 @@ Currently in preliminary development stages.
 
 Status:
 	directory listing works, incorrect stat() info
+	redirecturi is now hardcoded -- you do not need the file
+	clientsecrets and client id should now be in $XDG_CONFIG_HOME/fuse-google-drive/
 
 Discussion:
 	#fuse-google-drive on irc.freenode.net
@@ -26,10 +28,12 @@ Compilation:
 Usage:
 	Right now you need to go to http://code.google.com/apis/console and create
 a new app and generate a client id and client secret for an install application.
-Place the client secret in clientsecret and the redirect URI in redirecturi in
-the same directory as fuse-google-drive. Hopefully a better solution for this
-can be found. You also need to place the string "urn:ietf:wg:oauth:2.0:oob", 
-unquoted, in the file redirecturi.
+The clientid value and clientsecrets value should each go into:
+$XDG_CONFIG_HOME/fuse-google-drive/clientid
+$XDG_CONFIG_HOME/fuse-google-drive/clientsecrets
+resepectively. You should `chmod 700 $XDG_CONFIG_HOME/fuse-google/drive` as well.
+If the folder does not exist at runtime, a helpful message is printed and the
+directory is created with the correct permissions if possible.
 
 	$ mkdir mountpint
 	$ ./fuse-google-drive mountpoint
