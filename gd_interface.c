@@ -311,7 +311,8 @@ int gdi_init(struct gdi_state* state)
 	if(state->clientsecrets == NULL)
 		goto init_fail;
 
-	state->redirecturi = gdi_load_redirecturi(full_path, "redirecturi");
+	//state->redirecturi = gdi_load_redirecturi(full_path, "redirecturi");
+	state->redirecturi = "urn:ietf:wg:oauth:2.0:oob";
 	if(state->redirecturi == NULL)
 		goto malloc_fail1;
 
@@ -477,7 +478,6 @@ init_success:
 void gdi_destroy(struct gdi_state* state)
 {
 	free(state->clientsecrets);
-	free(state->redirecturi);
 	free(state->clientid);
 	free(state->code);
 	//TODO: make sure all easy handles were first removed
