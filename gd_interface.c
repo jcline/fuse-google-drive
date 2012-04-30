@@ -238,6 +238,26 @@ void print_api_info(const char* path)
 	printf("the clientid in the same folder, but in the file 'clientid'.\n");
 
 	int ret = mkdir(path, S_IRWXU);
+	if(ret == -1)
+	{
+		if(errno == ENOENT)
+		{
+			char *home = getenv("HOME");
+			char *conf = "/.config/";
+			char *full_path = (char*) malloc(sizeof(char) * (strlen(home) + strlen(conf)));
+			memcpy(full_path, home, strlen(home));
+			memcpy(full_path + strlen(home), conf, strlen(conf));
+			printf("%s\n", full_path);
+			ret = mkdir(full_path, S_IRWXU);
+			if(ret == 0)
+			{
+				ret = mkdir(path, S_IRWXU);
+				if(ret)
+					rmdir(full_path);
+			}
+			free(full_path);
+		}
+	}
 	if(ret == 0)
 	{
 		printf("\nWe have created the folder %s for you to place these files.", path);
@@ -302,6 +322,12 @@ int gdi_init(struct gdi_state* state)
 
 	char *xdg_conf = getenv("XDG_CONFIG_HOME");
 	char *pname = "/fuse-google-drive/";
+	if(xdg_conf == NULL)
+	{
+		xdg_conf = getenv("HOME");
+		pname = "/.config/fuse-google-drive/";
+	}
+
 	char *full_path = (char*) malloc(sizeof(char) * (strlen(xdg_conf) + strlen(pname)));
 	//TODO error
 	memcpy(full_path, xdg_conf, strlen(xdg_conf));
@@ -466,12 +492,14 @@ malloc_fail2: // malloc clientid failed
 	free(state->redirecturi);
 malloc_fail1: // malloc redirecturi failed
 	free(state->clientsecrets);
+	free(full_path);
 
 init_fail:
 	return 1;
 
 init_success:
 	free(complete_authuri);
+	free(full_path);
 	return 0;
 }
 
