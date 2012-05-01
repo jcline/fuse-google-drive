@@ -151,7 +151,11 @@ char* load_file(const char* path, const char* name)
 {
 	size_t pathlen = strlen(path);
 	size_t namelen = strlen(name);
-	char *full_name = (char*) malloc(sizeof(char) * (pathlen + namelen));
+	size_t full_name_len = sizeof(char) * (pathlen + namelen) + 1;
+	char *full_name = (char*) malloc(full_name_len);
+
+	memset(full_name, 0, full_name_len);
+
 	if(full_name == NULL)
 	{
 		perror("malloc");
