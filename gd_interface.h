@@ -40,6 +40,7 @@ struct gdi_state {
 	char *token_type;
 
 	struct gd_fs_entry_t *head;
+	struct gd_fs_entry_t *tail;
 };
 
 char* urlencode (const char *url, size_t* length);

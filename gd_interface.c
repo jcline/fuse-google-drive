@@ -319,6 +319,7 @@ size_t add_unencoded_str(char *buf, const char *str, const size_t size)
 int gdi_init(struct gdi_state* state)
 {
 	state->head = NULL;
+	state->tail = NULL;
 
 	char *xdg_conf = getenv("XDG_CONFIG_HOME");
 	char *pname = "/fuse-google-drive/";
@@ -474,7 +475,6 @@ int gdi_init(struct gdi_state* state)
 
 	gdi_get_file_list("/", state);
 
-
 	goto init_success;
 // These labels are the name of what failed followed by number of things to clean
 curl_fail7:
@@ -535,13 +535,56 @@ size_t remove_newlines(char *str, size_t length)
 
 size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
 {
-
 	struct str_t *resp = (struct str_t*) store;
 	resp->str = (char*) realloc(resp->str, resp->len + size*nmemb);
+	memset(resp->str + resp->len, 0, size*nmemb);
 	memcpy(resp->str + resp->len, data, size*nmemb);
 	resp->len += size*nmemb;
 
 	return size*nmemb;
+}
+
+char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
+{
+	xmlDocPtr xmldoc = xmlParseMemory(xml, len);
+
+	xmlNodePtr node;
+
+	struct gd_fs_entry_t *tmp = state->tail;
+
+	char *next = NULL;
+	if(xmldoc == NULL || xmldoc->children == NULL || xmldoc->children->children == NULL)
+		return NULL;
+	for(node = xmldoc->children->children; node != NULL; node = node->next)
+	{
+		if(strcmp(node->name, "entry") == 0)
+		{
+			if(!tmp)
+			{
+				tmp = gd_fs_entry_from_xml(xmldoc, node);
+				state->head = tmp;
+				state->tail = tmp;
+			}
+			else
+			{
+				tmp->next = gd_fs_entry_from_xml(xmldoc, node);
+				tmp = tmp->next;
+				state->tail = tmp;
+			}
+		}
+		if(strcmp(node->name, "link") == 0)
+		{
+			char *prop = xmlGetProp(node, "rel");
+			if(prop != NULL)
+			{
+				if(strcmp(prop, "next") == 0)
+				{
+					next = xmlGetProp(node, "href");
+				}
+			}
+		}
+	}
+	return next;
 }
 
 void gdi_get_file_list(const char *path, struct gdi_state *state)
@@ -550,8 +593,9 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	resp.len = 0;
 	resp.str = NULL;
 
-	char **list;
 	char u[] = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true";
+	char *next = u;
+
 	char oauth_str[] = "Authorization: OAuth ";
 	char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) +
 				30));
@@ -562,47 +606,33 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	struct curl_slist *headers = NULL;
 	headers = curl_slist_append(headers, header_str);
 
-	CURL* handle = curl_easy_init();
-	curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
-	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
-	curl_easy_setopt(handle, CURLOPT_URL, u); // set URI
-	curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
-	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
-	// set curl_post_callback for parsing the server response
-	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
-	// set curl_post_callback's last parameter to state
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &resp);
+	size_t num_pages = 5;
+	for(; next; )
+	{
 
+		CURL* handle = curl_easy_init();
+		curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
+		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
+		curl_easy_setopt(handle, CURLOPT_URL, next); // set URI
+		curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
+		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
+		// set curl_post_callback for parsing the server response
+		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
+		// set curl_post_callback's last parameter to state
+		curl_easy_setopt(handle, CURLOPT_WRITEDATA, &resp);
 
-	curl_easy_perform(handle); // GET
-	curl_easy_cleanup(handle); // cleanup
+		curl_easy_perform(handle); // GET
+		curl_easy_cleanup(handle); // cleanup
+
+		iter = strstr(resp.str, "<feed");
+		//if(iter == NULL)
+		// TODO: errors
+		next = xml_parse_file_list(iter, resp.len - (iter - resp.str), state);
+		free(resp.str);
+		resp.str = NULL;
+		resp.len = 0;
+	}
+
 	curl_slist_free_all(headers);
 	free(header_str);
-
-	iter = strstr(resp.str, "<feed");
-	//if(iter == NULL)
-	// TODO: errors
-
-	xmlDocPtr xmldoc = xmlParseMemory(iter, resp.len - (iter - resp.str));
-
-	xmlNodePtr node;
-
-	struct gd_fs_entry_t *tmp = NULL;
-
-	for(node = xmldoc->children->children; node != NULL; node = node->next)
-	{
-		if(strcmp(node->name, "entry") == 0)
-		{
-			if(!tmp)
-			{
-				tmp = gd_fs_entry_from_xml(xmldoc, node);
-				state->head = tmp;
-			}
-			else
-			{
-				tmp->next = gd_fs_entry_from_xml(xmldoc, node);
-				tmp = tmp->next;
-			}
-		}
-	}
 }
