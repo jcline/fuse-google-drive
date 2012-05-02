@@ -18,13 +18,13 @@
 
 #ifndef _STACK_H
 #define _STACK_H
+#include <stdlib.h>
 
 struct stack_t {
-	struct stack_t *top;
-
 	size_t reserved;
 	size_t size;
 
+	void **top;
 	void *store;
 };
 
@@ -34,7 +34,7 @@ void stack_destroy(struct stack_t *stack);
 
 void *stack_peek(struct stack_t *stack);
 void *stack_pop(struct stack_t *stack);
-void stack_push(struct stack_t *stack, void *item);
+int stack_push(struct stack_t *stack, void *item);
 
 int stack_resize(struct stack_t *stack, size_t size);
 

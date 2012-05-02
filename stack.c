@@ -16,6 +16,7 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 #include "stack.h"
+#include <stdlib.h>
 
 int stack_init(struct stack_t *stack, size_t size)
 {
@@ -38,7 +39,7 @@ void stack_destroy(struct stack_t *stack)
 
 void *stack_peek(struct stack_t *stack)
 {
-	return stack->top;
+	return *(stack->top);
 }
 
 void *stack_pop(struct stack_t *stack)
@@ -51,7 +52,7 @@ void *stack_pop(struct stack_t *stack)
 int stack_push(struct stack_t *stack, void *item)
 {
 	if(!(stack->reserved - ++stack->size))
-		if(stack_resize(stack, stack->reserve+10))
+		if(stack_resize(stack, stack->reserved+10))
 			return --stack->size;
 	*(++stack->top) = item;
 	return 0;

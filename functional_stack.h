@@ -20,6 +20,7 @@
 #define _FUNCTIONAL_STACK_H
 
 #include "stack.h"
+#include <stdlib.h>
 
 struct fstack_item_t {
 	void *data;
@@ -33,7 +34,8 @@ void fstack_destroy(struct stack_t *stack);
 
 void *fstack_peek(struct stack_t *stack);
 void *fstack_pop(struct stack_t *stack);
-void fstack_push(struct stack_t *stack, void *item);
+int fstack_push(struct stack_t *stack, void *data, void (*func1)(void*),
+                void (*func2)(), char order)
 
 int fstack_resize(struct stack_t *stack, size_t size);
 
