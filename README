@@ -36,7 +36,7 @@ If the folder does not exist at runtime, a helpful message is printed and the
 directory is created with the correct permissions if possible.
 Note: If $XDG_CONFIG_HOME is unset on your system, it defaults to ~/.config/.
 
-	$ mkdir mountpint
+	$ mkdir mountpoint
 	$ ./fuse-google-drive mountpoint
 
 Thanks to:
