@@ -324,6 +324,8 @@ size_t add_unencoded_str(char *buf, const char *str, const size_t size)
 
 int gdi_init(struct gdi_state* state)
 {
+	union func_u func;
+
 	struct stack_t stack;
 	if(fstack_init(&stack, 20))
 		return 1;
@@ -347,23 +349,27 @@ int gdi_init(struct gdi_state* state)
 	state->clientsecrets = gdi_load_clientsecrets(full_path, "clientsecrets");
 	if(state->clientsecrets == NULL)
 		goto init_fail;
-	fstack_push(&stack, state->clientsecrets, free, NULL, 1);
+	func.func1 = free;
+	fstack_push(&stack, state->clientsecrets, &func, 1);
 
 	state->redirecturi = "urn:ietf:wg:oauth:2.0:oob";
 
 	state->clientid = gdi_load_clientid(full_path, "clientid");
 	if(state->clientid == NULL)
 		goto malloc_fail2;
-	fstack_push(&stack, state->clientid, free, NULL, 1);
+	func.func1 = free;
+	fstack_push(&stack, state->clientid, &func, 1);
 
 	if(curl_global_init(CURL_GLOBAL_SSL) != 0)
 		goto curl_init_fail3;
-	fstack_push(&stack, NULL, NULL, curl_global_cleanup, 2);
+	func.func2 = curl_global_cleanup;
+	fstack_push(&stack, NULL, &func, 2);
 
 	state->curlmulti = curl_multi_init();
 	if(state->curlmulti == NULL)
 		goto multi_init_fail4;
-	fstack_push(&stack, state->curlmulti, curl_multi_cleanup, NULL 1);
+	func.func3 = curl_multi_cleanup;
+	fstack_push(&stack, state->curlmulti, &func, 3);
 
 	/* Authenticate the application */
 	char response_type_code[] = "?response_type=code";
@@ -378,7 +384,9 @@ int gdi_init(struct gdi_state* state)
 	char *complete_authuri = (char *) malloc(sizeof(char) * 3000);
 	if(complete_authuri == NULL)
 		goto malloc_fail5;
-	fstack_push(&stack, complete_authuri, free, NULL, 1);
+	func.func1 = free;
+	fstack_push(&stack, complete_authuri, &func, 1);
+
 	char *iter = complete_authuri;
 
 	// Create the authentication request URI
@@ -428,7 +436,8 @@ int gdi_init(struct gdi_state* state)
 	state->code = (char *) malloc(sizeof(char)*length);
 	if(state->code == NULL)
 		goto malloc_fail6;
-	fstack_push(&stack, state->code, free, NULL, 1);
+	func.func1 = free;
+	fstack_push(&stack, state->code, &func, 1);
 
 	char *code = state->code;
 	while(i < length && !done)
@@ -463,7 +472,8 @@ int gdi_init(struct gdi_state* state)
 	CURL *auth_handle = curl_easy_init();
 	if(auth_handle == NULL)
 		goto curl_fail7;
-	fstack_push(&stack, auth_handle, curl_easy_cleanup, NULL, 1);
+	func.func1 = curl_easy_cleanup;
+	fstack_push(&stack, auth_handle, &func, 1);
 
 	// Using complete_authuri to store POST data
 	iter = complete_authuri;

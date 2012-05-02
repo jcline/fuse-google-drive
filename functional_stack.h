@@ -22,11 +22,18 @@
 #include "stack.h"
 #include <stdlib.h>
 
-struct fstack_item_t {
-	void *data;
+union func_u {
 	void (*func1)(void*);
 	void (*func2)();
-	// if 1, call func1 before func2, if 2, func2 then func1
+
+	int (*func3)(void*);
+	int (*func4)();
+};
+
+struct fstack_item_t {
+	void *data;
+	union func_u *func;
+	// value curresponds to the function in func_u
 	char order;
 };
 int fstack_init(struct stack_t *stack, size_t size);
@@ -34,8 +41,7 @@ void fstack_destroy(struct stack_t *stack);
 
 void *fstack_peek(struct stack_t *stack);
 void *fstack_pop(struct stack_t *stack);
-int fstack_push(struct stack_t *stack, void *data, void (*func1)(void*),
-                void (*func2)(), char order);
+int fstack_push(struct stack_t *stack, void *data, union func_u *func, char order);
 
 int fstack_resize(struct stack_t *stack, size_t size);
 

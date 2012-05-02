@@ -42,12 +42,16 @@ void *fstack_peek(struct stack_t *stack)
 		switch(item->order)
 		{
 			case 1:
-				if(item->func1) item->func1(item->data);
-				if(item->func2) item->func2(item->data);
+				item->func->func1(item->data);
 				break;
 			case 2:
-				if(item->func2) item->func2(item->data);
-				if(item->func1) item->func1(item->data);
+				item->func->func2();
+				break;
+			case 3:
+				item->func->func3(item->data);
+				break;
+			case 4:
+				item->func->func4();
 				break;
 		}
 	}
@@ -63,12 +67,16 @@ void *fstack_pop(struct stack_t *stack)
 		switch(item->order)
 		{
 			case 1:
-				if(item->func1) item->func1(item->data);
-				if(item->func2) item->func2(item->data);
+				item->func->func1(item->data);
 				break;
 			case 2:
-				if(item->func2) item->func2(item->data);
-				if(item->func1) item->func1(item->data);
+				item->func->func2();
+				break;
+			case 3:
+				item->func->func3(item->data);
+				break;
+			case 4:
+				item->func->func4();
 				break;
 		}
 	}
@@ -77,22 +85,19 @@ void *fstack_pop(struct stack_t *stack)
 	return data;
 }
 
-int fstack_push(struct stack_t *stack, void *data, void (*func1)(void*),
-                void (*func2)(), char order)
+int fstack_push(struct stack_t *stack, void *data, union func_u *func, char order)
 {
 	struct fstack_item_t *item;
 	item = (struct fstack_item_t*) malloc(sizeof(struct fstack_item_t));
 	if(!item)
 		return 1;
+
+	item->func = (union func_u*) malloc(sizeof(union func_u));
+	if(!item->func)
+		return 1;
+
+	item->func = memcpy(item->func, func, sizeof(union func_u));
 	item->data = data;
-	item->func1 = func1;
-	item->func2 = func2;
-	if(order != 1 && order != 2)
-	{
-		fprintf(stderr, "order parameter must be either 1 or 2\n");
-		free(item);
-		return 2;
-	}
 	item->order = order;
 
 	return stack_push(stack, item);
