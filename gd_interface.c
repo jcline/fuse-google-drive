@@ -342,13 +342,13 @@ int gdi_init(struct gdi_state* state)
 	}
 
 	char *full_path = (char*) malloc(sizeof(char) * (strlen(xdg_conf) + strlen(pname)));
-	//TODO error
+	if(full_path == NULL)
+		goto init_fail;
 	memcpy(full_path, xdg_conf, strlen(xdg_conf));
 	memcpy(full_path + strlen(xdg_conf), pname, strlen(pname));
 
 	state->clientsecrets = gdi_load_clientsecrets(full_path, "clientsecrets");
 	if(state->clientsecrets == NULL)
-		goto init_fail;
 	func.func1 = free;
 	fstack_push(&stack, state->clientsecrets, &func, 1);
 
@@ -356,18 +356,18 @@ int gdi_init(struct gdi_state* state)
 
 	state->clientid = gdi_load_clientid(full_path, "clientid");
 	if(state->clientid == NULL)
-		goto malloc_fail2;
+		goto init_fail;
 	func.func1 = free;
 	fstack_push(&stack, state->clientid, &func, 1);
 
 	if(curl_global_init(CURL_GLOBAL_SSL) != 0)
-		goto curl_init_fail3;
+		goto init_fail;
 	func.func2 = curl_global_cleanup;
 	fstack_push(&stack, NULL, &func, 2);
 
 	state->curlmulti = curl_multi_init();
 	if(state->curlmulti == NULL)
-		goto multi_init_fail4;
+		goto init_fail;
 	func.func3 = curl_multi_cleanup;
 	fstack_push(&stack, state->curlmulti, &func, 3);
 
@@ -383,7 +383,7 @@ int gdi_init(struct gdi_state* state)
 	// Calculating the correct value is more trouble than it is worth
 	char *complete_authuri = (char *) malloc(sizeof(char) * 3000);
 	if(complete_authuri == NULL)
-		goto malloc_fail5;
+		goto init_fail;
 	func.func1 = free;
 	fstack_push(&stack, complete_authuri, &func, 1);
 
@@ -435,7 +435,7 @@ int gdi_init(struct gdi_state* state)
 	size_t done = 0;
 	state->code = (char *) malloc(sizeof(char)*length);
 	if(state->code == NULL)
-		goto malloc_fail6;
+		goto init_fail;
 	func.func1 = free;
 	fstack_push(&stack, state->code, &func, 1);
 
@@ -464,14 +464,14 @@ int gdi_init(struct gdi_state* state)
 	if(i!=30) // Is the code actually always this length?
 	{
 		printf("The code you entered, %s, is not the right length. Please retry mounting.\n", code);
-		goto code_fail7;
+		goto init_fail;
 	}
 	*/
 
 	// Prepare and make the request to exchange the code for an access token
 	CURL *auth_handle = curl_easy_init();
 	if(auth_handle == NULL)
-		goto curl_fail7;
+		goto init_fail;
 	func.func1 = curl_easy_cleanup;
 	fstack_push(&stack, auth_handle, &func, 1);
 
@@ -503,25 +503,9 @@ int gdi_init(struct gdi_state* state)
 	gdi_get_file_list("/", state);
 
 	goto init_success;
-// These labels are the name of what failed followed by number of things to clean
-curl_fail7:
-code_fail7:
-	free(state->code);
-malloc_fail6: // malloc state->code failed
-	free(complete_authuri);
-malloc_fail5: // malloc complete_authuri failed
-	curl_multi_cleanup(state->curlmulti);
-multi_init_fail4: // curl_multi_init() failed
-	curl_global_cleanup();
-curl_init_fail3:
-	free(state->clientid);
-malloc_fail2: // malloc clientid failed
-	free(state->redirecturi);
-malloc_fail1: // malloc redirecturi failed
-	free(state->clientsecrets);
-	free(full_path);
 
 init_fail:
+	while(fstack_pop(&stack));
 	return 1;
 
 init_success:
