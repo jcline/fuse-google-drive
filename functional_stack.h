@@ -35,7 +35,7 @@ void fstack_destroy(struct stack_t *stack);
 void *fstack_peek(struct stack_t *stack);
 void *fstack_pop(struct stack_t *stack);
 int fstack_push(struct stack_t *stack, void *data, void (*func1)(void*),
-                void (*func2)(), char order)
+                void (*func2)(), char order);
 
 int fstack_resize(struct stack_t *stack, size_t size);
 
