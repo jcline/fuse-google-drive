@@ -20,12 +20,12 @@
 
 int stack_init(struct stack_t *stack, size_t size)
 {
-	stack->top = NULL;
 	stack->size = 0;
 	stack->store = NULL;
 	int ret = stack_resize(stack, size);
 	if(!ret)
 		stack->reserved = size;
+	stack->top = &stack->store[0];
 	return ret;
 }
 
@@ -55,7 +55,10 @@ int stack_push(struct stack_t *stack, void *item)
 	if(!(stack->reserved - ++stack->size))
 		if(stack_resize(stack, stack->reserved+10))
 			return --stack->size;
-	*(++stack->top) = item;
+	if(stack->top == &stack->store[0])
+		*(stack->top) = item;
+	else
+		*(++stack->top) = item;
 	return 0;
 }
 
