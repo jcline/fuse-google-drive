@@ -40,7 +40,7 @@ struct str_t {
 
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
 const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
-const char drive_scope[] = "https://www.googleapis.com/auth/drive.file";
+//const char drive_scope[] = "https://www.googleapis.com/auth/drive.file";
 const char email_scope[] = "https://www.googleapis.com/auth/userinfo.email";
 const char docs_scope[] = "https://docs.google.com/feeds/";
 const char docsguc_scope[] = "https://docs.googleusercontent.com/";
@@ -367,10 +367,17 @@ int gdi_init(struct gdi_state* state)
 
 	state->clientsecrets = gdi_load_clientsecrets(full_path, "clientsecrets");
 	if(state->clientsecrets == NULL)
+		goto init_fail;
 	func.func1 = free;
 	fstack_push(estack, state->clientsecrets, &func, 1);
 
-	state->redirecturi = "urn:ietf:wg:oauth:2.0:oob";
+	char redirecturi[] = "urn:ietf:wg:oauth:2.0:oob";
+	state->redirecturi = (char*) malloc(sizeof(char) * sizeof(redirecturi));
+	if(state->redirecturi == NULL)
+		goto init_fail;
+	func.func1 = free;
+	fstack_push(estack, state->redirecturi, &func, 1);
+	memcpy(state->redirecturi, redirecturi, sizeof(redirecturi));
 
 	state->clientid = gdi_load_clientid(full_path, "clientid");
 	if(state->clientid == NULL)
@@ -432,8 +439,6 @@ int gdi_init(struct gdi_state* state)
 	iter += add_encoded_uri(iter, spreadsheets_scope, sizeof(spreadsheets_scope));
 	*iter = '+';
 	++iter;
-
-	iter += add_encoded_uri(iter, drive_scope, sizeof(drive_scope));
 
 	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
 
@@ -529,17 +534,21 @@ int gdi_init(struct gdi_state* state)
 init_fail:
 	while(fstack_pop(estack));
 	while(fstack_pop(gstack));
+	fstack_destroy(estack);
+	fstack_destroy(gstack);
 	return 1;
 
 init_success:
 	state->stack = estack;
 	while(fstack_pop(gstack));
+	fstack_destroy(gstack);
 	return 0;
 }
 
 void gdi_destroy(struct gdi_state* state)
 {
 	while(fstack_pop(state->stack));
+	fstack_destroy(state->stack);
 }
 
 size_t remove_newlines(char *str, size_t length)

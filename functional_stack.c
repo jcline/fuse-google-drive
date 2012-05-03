@@ -30,7 +30,7 @@ int fstack_init(struct stack_t *stack, size_t size)
 void fstack_destroy(struct stack_t *stack)
 {
 	while(stack->size)
-		free(stack_pop(stack));
+		stack_pop(stack);
 	stack_destroy(stack);
 }
 
