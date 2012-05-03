@@ -110,8 +110,6 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 		}
 	}
 
-	//printf("%s\n", entry->filename);
-
 	return entry;
 }
 
@@ -142,7 +140,6 @@ int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 	{
 		entry.key = iter->filename;
 		entry.data = iter;
-		printf("%s\n", entry.key);
 
 		ENTRY* entered = hsearch(entry, ENTER);
 		if(0 && !entered)
