@@ -496,18 +496,19 @@ int gdi_init(struct gdi_state* state)
 	// Using complete_authuri to store POST data
 	iter = complete_authuri;
 	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
-	iter += add_unencoded_str(iter, state->code, strlen(state->code)+1);
+	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
 	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
-	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
+	iter += add_encoded_uri(iter, state->clientid, strlen(state->clientid)+1);
 	iter += add_unencoded_str(iter, clientsecret, sizeof(clientsecret));
-	iter += add_unencoded_str(iter, state->clientsecrets, strlen(state->clientsecrets)+1);
+	iter += add_encoded_uri(iter, state->clientsecrets, strlen(state->clientsecrets)+1);
 	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
-	iter += add_unencoded_str(iter, state->redirecturi, strlen(state->redirecturi)+1);
+	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
 	iter += add_unencoded_str(iter, granttype, sizeof(granttype));
 
 	printf("%s\n%s\n", token_uri, complete_authuri);
 
 	// TODO: errors
+	curl_easy_setopt(auth_handle, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 	curl_easy_setopt(auth_handle, CURLOPT_URL, token_uri); // set URI
 	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri); // BODY
