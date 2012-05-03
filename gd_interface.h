@@ -34,6 +34,9 @@ struct gdi_state {
 	CURLM *curlmulti;
 	char *code;
 
+	// So we can identify files owned by this user
+	char *email;
+
 	char *access_token;
 	char *id_token;
 	char *refresh_token;

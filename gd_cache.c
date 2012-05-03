@@ -91,6 +91,16 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				memcpy(entry->filename, value, length);
 				xmlFree(value);
 				break;
+			case 's':
+				if(strcmp(name, "size") == 0)
+				{
+					value = xmlNodeListGetString(xml, c1->children, 1);
+					length = xmlStrlen(value);
+					// TODO: errors?
+					entry->size = strtol((char*)value, NULL, 10);
+					xmlFree(value);
+				}
+				break;
 			default:
 				break;
 		}
