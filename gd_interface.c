@@ -211,8 +211,6 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	struct gdi_state *state = (struct gdi_state*) store;
 	struct json_object *json = json_tokener_parse(data);
 
-	printf("%s\n", (char*)data);
-
 	struct json_object *tmp = json_object_object_get(json, "error");
 	if(tmp != NULL)
 	{
