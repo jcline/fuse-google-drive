@@ -492,6 +492,12 @@ int gdi_init(struct gdi_state* state)
 
 	code[i] = 0; // Null terminate code
 
+	if(i < 5)
+	{
+		printf("You did not enter a correct authentication code.\n");
+		goto init_fail;
+	}
+
 	// Prepare and make the request to exchange the code for an access token
 	CURL *auth_handle = curl_easy_init();
 	if(auth_handle == NULL)
@@ -656,7 +662,7 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	struct curl_slist *headers = NULL;
 	headers = curl_slist_append(headers, header_str);
 
-	size_t num_pages = 5;
+	printf("Please wait, loading a list of your files...\n");
 	while(next)
 	{
 
