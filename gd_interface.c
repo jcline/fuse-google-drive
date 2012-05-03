@@ -505,7 +505,7 @@ int gdi_init(struct gdi_state* state)
 	func.func1 = curl_easy_cleanup;
 	fstack_push(gstack, auth_handle, &func, 1);
 
-	// Using complete_authuri to store POST data
+	// Using complete_authuri to store POST data rather than allocating more space
 	iter = complete_authuri;
 	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
 	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
