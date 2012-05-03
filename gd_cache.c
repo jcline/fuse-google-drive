@@ -16,8 +16,12 @@
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "gd_cache.h"
+#include <errno.h>
+#include <stdio.h>
+#include <search.h>
 #include <string.h>
+
+#include "gd_cache.h"
 
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 {
@@ -110,3 +114,53 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 
 	return entry;
 }
+
+struct gd_fs_entry_t* gd_fs_entry_find(const char* key)
+{
+	ENTRY keyentry;
+	keyentry.key = key;
+	keyentry.data = NULL;
+	ENTRY* entry = hsearch(keyentry, FIND);
+	if(entry == NULL)
+		return NULL;
+	return (struct gd_fs_entry*) entry->data;
+}
+
+int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
+{
+	int ret = hcreate(size);
+	if(!ret)
+	{
+		printf("hcreate failed\n");
+		return 1;
+	}
+
+	size_t debugcount = 0;
+	ENTRY entry;
+	struct gd_fs_entry_t *iter = head;
+	while(iter != NULL)
+	{
+		entry.key = iter->filename;
+		entry.data = iter;
+		printf("%s\n", entry.key);
+
+		ENTRY* entered = hsearch(entry, ENTER);
+		if(0 && !entered)
+		{
+			fprintf(stderr, "hsearch(%ld): %s\n", debugcount, strerror(errno));
+			destroy_hash_table();
+			return 1;
+		}
+
+		iter = iter->next;
+		++debugcount;
+	}
+
+	return 0;
+}
+
+void destroy_hash_table()
+{
+	hdestroy();
+}
+

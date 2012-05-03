@@ -49,11 +49,15 @@ struct gd_fs_entry_t {
 // need to add a new item.
 // What to do about removing a file? Just mark the entry as invalid? There is
 // no removal action for hsearch et al.
+// Does this also need a condition variable?
 struct gd_fs_lock_t {
 	pthread_rwlock_t *lock;
 };
 
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node);
+struct gd_fs_entry_t* gd_fs_entry_find(const char* key);
 
+int create_hash_table(size_t size, const struct gd_fs_entry_t* head);
+void destroy_hash_table();
 
 #endif

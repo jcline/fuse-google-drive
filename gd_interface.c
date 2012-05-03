@@ -509,10 +509,8 @@ int gdi_init(struct gdi_state* state)
 	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
 	iter += add_unencoded_str(iter, granttype, sizeof(granttype));
 
-	printf("%s\n%s\n", token_uri, complete_authuri);
-
 	// TODO: errors
-	curl_easy_setopt(auth_handle, CURLOPT_VERBOSE, 1);
+	//curl_easy_setopt(auth_handle, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 	curl_easy_setopt(auth_handle, CURLOPT_URL, token_uri); // set URI
 	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri); // BODY
@@ -524,29 +522,39 @@ int gdi_init(struct gdi_state* state)
 	if(state->callback_error)
 		goto init_fail;
 
-	printf("%s\n", state->access_token);
-
 	gdi_get_file_list("/", state);
+	if(create_hash_table(state->num_files*4, state->head))
+	{
+		printf("create_hash failed\n");
+		goto init_fail;
+	}
+	func.func2 = destroy_hash_table;
+	fstack_push(estack, NULL, &func, 2);
+
 
 	goto init_success;
 
 init_fail:
-	while(fstack_pop(estack));
-	while(fstack_pop(gstack));
+	while(estack->size)
+		fstack_pop(estack);
+	while(gstack->size)
+		fstack_pop(gstack);
 	fstack_destroy(estack);
 	fstack_destroy(gstack);
 	return 1;
 
 init_success:
 	state->stack = estack;
-	while(fstack_pop(gstack));
+	while(gstack->size)
+		fstack_pop(gstack);
 	fstack_destroy(gstack);
 	return 0;
 }
 
 void gdi_destroy(struct gdi_state* state)
 {
-	while(fstack_pop(state->stack));
+	while(state->stack->size)
+		fstack_pop(state->stack);
 	fstack_destroy(state->stack);
 }
 
@@ -587,6 +595,7 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 
 	xmlNodePtr node;
 
+	size_t count = 0;
 	struct gd_fs_entry_t *tmp = state->tail;
 
 	char *next = NULL;
@@ -608,6 +617,7 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 				tmp = tmp->next;
 				state->tail = tmp;
 			}
+			++count;
 		}
 		if(strcmp(node->name, "link") == 0)
 		{
@@ -621,6 +631,7 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 			}
 		}
 	}
+	state->num_files = count;
 	return next;
 }
 
@@ -648,7 +659,7 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	{
 
 		CURL* handle = curl_easy_init();
-		curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
+		//curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
 		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 		curl_easy_setopt(handle, CURLOPT_URL, next); // set URI
 		curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?

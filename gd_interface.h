@@ -45,6 +45,7 @@ struct gdi_state {
 
 	struct gd_fs_entry_t *head;
 	struct gd_fs_entry_t *tail;
+	size_t num_files;
 
 	struct stack_t *stack;
 
