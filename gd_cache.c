@@ -57,7 +57,7 @@ char* filenameencode (const char *filename, size_t *length)
 	}
 
 	// Allocate the correct amount of memory for the escaped string
-	char *result = (char *) malloc( sizeof(char) * (size + count*3));
+	char *result = (char *) malloc( sizeof(char) * (size + count*3 + 1));
 	if(result == NULL)
 		return NULL;
 

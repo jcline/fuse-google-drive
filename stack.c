@@ -22,6 +22,7 @@ int stack_init(struct stack_t *stack, size_t size)
 {
 	stack->size = 0;
 	stack->store = NULL;
+	stack->reserved = 0;
 	int ret = stack_resize(stack, size);
 	if(!ret)
 		stack->reserved = size;

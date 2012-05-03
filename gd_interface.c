@@ -104,7 +104,7 @@ char* urlencode (const char *url, size_t *length)
 	}
 
 	// Allocate the correct amount of memory for the escaped string
-	char *result = (char *) malloc( sizeof(char) * (size + count*3));
+	char *result = (char *) malloc( sizeof(char) * (size + count*3 + 1));
 	if(result == NULL)
 		return NULL;
 
@@ -136,7 +136,7 @@ char* urlencode (const char *url, size_t *length)
 	// Calculate the size of the final string, should be the same as (length+count*3)
 	size = iter - result;
 	// Make sure we null terminate
-	result[size-1] = 0;
+	result[size] = 0;
 	// Save the new length
 	*length = size;
 
@@ -363,14 +363,15 @@ int gdi_init(struct gdi_state* state)
 		pname = "/.config/fuse-google-drive/";
 	}
 
-	char *full_path = (char*) malloc(sizeof(char) * (strlen(xdg_conf) + strlen(pname)));
+	char *full_path = (char*) malloc(sizeof(char) * (strlen(xdg_conf) +
+			 	strlen(pname) + 1));
 	if(full_path == NULL)
 		goto init_fail;
 	func.func1 = free;
 	fstack_push(gstack, full_path, &func, 1);
 
-	memcpy(full_path, xdg_conf, strlen(xdg_conf));
-	memcpy(full_path + strlen(xdg_conf), pname, strlen(pname));
+	memcpy(full_path, xdg_conf, strlen(xdg_conf) + 1);
+	memcpy(full_path + strlen(xdg_conf), pname, strlen(pname) + 1);
 
 	state->clientsecrets = gdi_load_clientsecrets(full_path, "clientsecrets");
 	if(state->clientsecrets == NULL)
