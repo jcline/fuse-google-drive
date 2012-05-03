@@ -12,13 +12,16 @@ Discussion:
 
 Dependencies:
 	fuse
-	curl
+	libcurl
 	json-c aka libjson
 	libxml2
 
 Build Dependencies:
 	autotools
 	make
+If you are on one of the systems that does not include development files with
+packages, then make sure you install the development packages for each of the
+dependencies.
 
 Compilation:
 	$ ./autogen.sh
