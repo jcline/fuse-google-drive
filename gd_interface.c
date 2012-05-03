@@ -489,13 +489,6 @@ int gdi_init(struct gdi_state* state)
 	}
 
 	code[i] = 0; // Null terminate code
-	/*
-	if(i!=30) // Is the code actually always this length?
-	{
-		printf("The code you entered, %s, is not the right length. Please retry mounting.\n", code);
-		goto init_fail;
-	}
-	*/
 
 	// Prepare and make the request to exchange the code for an access token
 	CURL *auth_handle = curl_easy_init();
