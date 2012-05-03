@@ -23,6 +23,79 @@
 
 #include "gd_cache.h"
 
+char filenameunsafe[] = 
+{
+	'%',
+	'/'
+};
+
+/** Escapes unsafe characters for filenames.
+ *
+ *  @filename the string to escape
+ *  @length
+ *          precondition:  strlen(filename)
+ *          postcondition: strlen(escaped filename)
+ *  @returns escaped, null terminated string
+ */
+char* filenameencode (const char *filename, size_t *length)
+{
+	size_t i;
+	size_t j;
+	size_t count = 0;
+	size_t size = *length;
+	// Count the number of characters that need to be escaped
+	for(i = 0; i < size; ++i)
+	{
+		for(j = 0; j < sizeof(filenameunsafe); ++j)
+		{
+			if(filename[i] == filenameunsafe[j])
+			{
+				++count;
+				break;
+			}
+		}
+	}
+
+	// Allocate the correct amount of memory for the escaped string
+	char *result = (char *) malloc( sizeof(char) * (size + count*3));
+	if(result == NULL)
+		return NULL;
+
+	// Copy old string into escaped string, escaping where necessary
+	char *iter = result;
+	for(i = 0; i < size; ++i)
+	{
+		for(j = 0; j < sizeof(filenameunsafe); ++j)
+		{
+			// We found a character that needs escaping
+			if(filename[i] == filenameunsafe[j])
+			{
+				// Had a weird issue with sprintf(,"\%%02X,), so I do this instead
+				*iter = '%';
+				++iter;
+				sprintf(iter, "%02X", filenameunsafe[j]);
+				iter+=2;
+				break;
+			}
+		}
+		// We did not need to escape the current character in filename, so just copy it
+		if(j == sizeof(filenameunsafe))
+		{
+			*iter = filename[i];
+			++iter;
+		}
+	}
+
+	// Calculate the size of the final string, should be the same as (length+count*3)
+	size = iter - result;
+	// Make sure we null terminate
+	result[size] = 0;
+	// Save the new length
+	*length = size;
+
+	return result;
+}
+
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 {
 	struct gd_fs_entry_t* entry;
@@ -91,8 +164,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 			case 't': // 'title'
 				value = xmlNodeListGetString(xml, c1->children, 1);
 				length = xmlStrlen(value);
-				entry->filename = (char*) malloc(sizeof(char*)*length);
-				memcpy(entry->filename, value, length);
+				entry->filename = filenameencode(value, &length);
 				xmlFree(value);
 				break;
 			case 's':
