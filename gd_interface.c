@@ -79,9 +79,10 @@ char urlunsafe[] =
 /** Escapes unsafe characters for adding to a URI.
  *
  *  @url the string to escape
- *  @length
+ *  @length length of the url
  *          precondition:  strlen(url)
  *          postcondition: strlen(escaped url)
+ *
  *  @returns escaped, null terminated string
  */
 char* urlencode (const char *url, size_t *length)
