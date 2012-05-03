@@ -155,14 +155,13 @@ char* load_file(const char* path, const char* name)
 	size_t namelen = strlen(name);
 	size_t full_name_len = sizeof(char) * (pathlen + namelen) + 1;
 	char *full_name = (char*) malloc(full_name_len);
-
-	memset(full_name, 0, full_name_len);
-
 	if(full_name == NULL)
 	{
 		perror("malloc");
 		return NULL;
 	}
+
+	memset(full_name, 0, full_name_len);
 
 	memcpy(full_name, path, pathlen);
 	memcpy(full_name + pathlen, name, namelen);
@@ -179,7 +178,7 @@ char* load_file(const char* path, const char* name)
 	size_t size = ftell(f);
 	rewind(f);
 
-	char *result = (char *) malloc(sizeof(char) * size);
+	char *result = (char *) malloc(sizeof(char) * (size+1));
 	if(result == NULL)
 	{
 		perror("malloc");
@@ -195,10 +194,17 @@ char* load_file(const char* path, const char* name)
 	}
 
 	fclose(f);
+	result[size] = 0;
 
-	// Strip trailing newlines
-	if(result[size-1] == '\n')
-		result[size-1] = 0;
+	char *to = result;
+	char *from = result;
+	for(; *from != 0; ++from)
+	{
+		*to = *from;
+		if(*from != '\n')
+			++to;
+	}
+	*to = 0;
 
 	return result;
 }
