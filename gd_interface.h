@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "gd_cache.h"
+#include "stack.h"
 
 struct gdi_state {
 	char *clientsecrets;
@@ -41,6 +42,10 @@ struct gdi_state {
 
 	struct gd_fs_entry_t *head;
 	struct gd_fs_entry_t *tail;
+
+	struct stack_t *stack;
+
+	int callback_error;
 };
 
 char* urlencode (const char *url, size_t* length);

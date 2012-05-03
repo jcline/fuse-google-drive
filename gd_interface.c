@@ -210,9 +210,18 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 {
 	struct gdi_state *state = (struct gdi_state*) store;
 	struct json_object *json = json_tokener_parse(data);
-	
-	// TODO: Errors
-	struct json_object *tmp = json_object_object_get(json, "access_token");
+
+	printf("%s\n", (char*)data);
+
+	struct json_object *tmp = json_object_object_get(json, "error");
+	if(tmp != NULL)
+	{
+		fprintf(stderr, "Error: %s\n", json_object_get_string(tmp));
+		state->callback_error = 1;
+		return size*nmemb;
+	}
+
+	tmp = json_object_object_get(json, "access_token");
 	state->access_token = json_object_get_string(tmp);
 	
 	tmp = json_object_object_get(json, "token_type");
@@ -326,12 +335,20 @@ int gdi_init(struct gdi_state* state)
 {
 	union func_u func;
 
-	struct stack_t stack;
-	if(fstack_init(&stack, 20))
+	struct stack_t *estack = (struct stack_t*)malloc(sizeof(struct stack_t));
+	if(!estack)
+		return 1;
+	if(fstack_init(estack, 20))
+		return 1;
+	struct stack_t *gstack = (struct stack_t*)malloc(sizeof(struct stack_t));
+	if(!gstack)
+		return 1;
+	if(fstack_init(gstack, 20))
 		return 1;
 
 	state->head = NULL;
 	state->tail = NULL;
+	state->callback_error = 0;
 
 	char *xdg_conf = getenv("XDG_CONFIG_HOME");
 	char *pname = "/fuse-google-drive/";
@@ -344,13 +361,16 @@ int gdi_init(struct gdi_state* state)
 	char *full_path = (char*) malloc(sizeof(char) * (strlen(xdg_conf) + strlen(pname)));
 	if(full_path == NULL)
 		goto init_fail;
+	func.func1 = free;
+	fstack_push(gstack, full_path, &func, 1);
+
 	memcpy(full_path, xdg_conf, strlen(xdg_conf));
 	memcpy(full_path + strlen(xdg_conf), pname, strlen(pname));
 
 	state->clientsecrets = gdi_load_clientsecrets(full_path, "clientsecrets");
 	if(state->clientsecrets == NULL)
 	func.func1 = free;
-	fstack_push(&stack, state->clientsecrets, &func, 1);
+	fstack_push(estack, state->clientsecrets, &func, 1);
 
 	state->redirecturi = "urn:ietf:wg:oauth:2.0:oob";
 
@@ -358,18 +378,18 @@ int gdi_init(struct gdi_state* state)
 	if(state->clientid == NULL)
 		goto init_fail;
 	func.func1 = free;
-	fstack_push(&stack, state->clientid, &func, 1);
+	fstack_push(estack, state->clientid, &func, 1);
 
 	if(curl_global_init(CURL_GLOBAL_SSL) != 0)
 		goto init_fail;
 	func.func2 = curl_global_cleanup;
-	fstack_push(&stack, NULL, &func, 2);
+	fstack_push(estack, NULL, &func, 2);
 
 	state->curlmulti = curl_multi_init();
 	if(state->curlmulti == NULL)
 		goto init_fail;
 	func.func3 = curl_multi_cleanup;
-	fstack_push(&stack, state->curlmulti, &func, 3);
+	fstack_push(estack, state->curlmulti, &func, 3);
 
 	/* Authenticate the application */
 	char response_type_code[] = "?response_type=code";
@@ -385,7 +405,7 @@ int gdi_init(struct gdi_state* state)
 	if(complete_authuri == NULL)
 		goto init_fail;
 	func.func1 = free;
-	fstack_push(&stack, complete_authuri, &func, 1);
+	fstack_push(gstack, complete_authuri, &func, 1);
 
 	char *iter = complete_authuri;
 
@@ -437,7 +457,7 @@ int gdi_init(struct gdi_state* state)
 	if(state->code == NULL)
 		goto init_fail;
 	func.func1 = free;
-	fstack_push(&stack, state->code, &func, 1);
+	fstack_push(estack, state->code, &func, 1);
 
 	char *code = state->code;
 	while(i < length && !done)
@@ -473,19 +493,21 @@ int gdi_init(struct gdi_state* state)
 	if(auth_handle == NULL)
 		goto init_fail;
 	func.func1 = curl_easy_cleanup;
-	fstack_push(&stack, auth_handle, &func, 1);
+	fstack_push(gstack, auth_handle, &func, 1);
 
 	// Using complete_authuri to store POST data
 	iter = complete_authuri;
 	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
-	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
+	iter += add_unencoded_str(iter, state->code, strlen(state->code)+1);
 	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
-	iter += add_encoded_uri(iter, state->clientid, strlen(state->clientid)+1);
+	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
 	iter += add_unencoded_str(iter, clientsecret, sizeof(clientsecret));
-	iter += add_encoded_uri(iter, state->clientsecrets, strlen(state->clientsecrets)+1);
+	iter += add_unencoded_str(iter, state->clientsecrets, strlen(state->clientsecrets)+1);
 	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
-	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
+	iter += add_unencoded_str(iter, state->redirecturi, strlen(state->redirecturi)+1);
 	iter += add_unencoded_str(iter, granttype, sizeof(granttype));
+
+	printf("%s\n%s\n", token_uri, complete_authuri);
 
 	// TODO: errors
 	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
@@ -496,7 +518,8 @@ int gdi_init(struct gdi_state* state)
 	// set curl_post_callback's last parameter to state
 	curl_easy_setopt(auth_handle, CURLOPT_WRITEDATA, state);
 	curl_easy_perform(auth_handle); // POST
-	curl_easy_cleanup(auth_handle); // cleanup
+	if(state->callback_error)
+		goto init_fail;
 
 	printf("%s\n", state->access_token);
 
@@ -505,23 +528,19 @@ int gdi_init(struct gdi_state* state)
 	goto init_success;
 
 init_fail:
-	while(fstack_pop(&stack));
+	while(fstack_pop(estack));
+	while(fstack_pop(gstack));
 	return 1;
 
 init_success:
-	free(complete_authuri);
-	free(full_path);
+	state->stack = estack;
+	while(fstack_pop(gstack));
 	return 0;
 }
 
 void gdi_destroy(struct gdi_state* state)
 {
-	free(state->clientsecrets);
-	free(state->clientid);
-	free(state->code);
-	//TODO: make sure all easy handles were first removed
-	curl_multi_cleanup(state->curlmulti);
-	curl_global_cleanup();
+	while(fstack_pop(state->stack));
 }
 
 size_t remove_newlines(char *str, size_t length)

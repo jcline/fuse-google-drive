@@ -47,6 +47,7 @@ void *stack_pop(struct stack_t *stack)
 {
 	void *ret = stack->top;
 	--stack->top;
+	--stack->size;
 	return ret;
 }
 
@@ -64,6 +65,8 @@ int stack_push(struct stack_t *stack, void *item)
 
 int stack_resize(struct stack_t *stack, size_t size)
 {
+	if(size <= stack->reserved)
+		return 0;
 	void *result = realloc(stack->store, size);
 	if(result)
 	{

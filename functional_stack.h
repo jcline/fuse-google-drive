@@ -39,7 +39,6 @@ struct fstack_item_t {
 int fstack_init(struct stack_t *stack, size_t size);
 void fstack_destroy(struct stack_t *stack);
 
-void *fstack_peek(struct stack_t *stack);
 void *fstack_pop(struct stack_t *stack);
 int fstack_push(struct stack_t *stack, void *data, union func_u *func, char order);
 

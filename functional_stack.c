@@ -15,8 +15,9 @@
 	with this program; if not, write to the Free Software Foundation, Inc.,
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "stack.h"
 #include "functional_stack.h"
@@ -33,54 +34,30 @@ void fstack_destroy(struct stack_t *stack)
 	stack_destroy(stack);
 }
 
-void *fstack_peek(struct stack_t *stack)
-{
-	struct fstack_item_t *item;
-	item = (struct fstack_item_t*) stack_peek(stack);
-	if(item)
-	{
-		switch(item->order)
-		{
-			case 1:
-				item->func->func1(item->data);
-				break;
-			case 2:
-				item->func->func2();
-				break;
-			case 3:
-				item->func->func3(item->data);
-				break;
-			case 4:
-				item->func->func4();
-				break;
-		}
-	}
-	return item->data;
-}
-
 void *fstack_pop(struct stack_t *stack)
 {
 	struct fstack_item_t *item;
 	item = (struct fstack_item_t*) stack_pop(stack);
 	if(item)
+		return NULL;
+
+	switch(item->order)
 	{
-		switch(item->order)
-		{
-			case 1:
-				item->func->func1(item->data);
-				break;
-			case 2:
-				item->func->func2();
-				break;
-			case 3:
-				item->func->func3(item->data);
-				break;
-			case 4:
-				item->func->func4();
-				break;
-		}
+		case 1:
+			item->func->func1(item->data);
+			break;
+		case 2:
+			item->func->func2();
+			break;
+		case 3:
+			item->func->func3(item->data);
+			break;
+		case 4:
+			item->func->func4();
+			break;
 	}
 	void *data = item->data;
+	free(item->func);
 	free(item);
 	return data;
 }
