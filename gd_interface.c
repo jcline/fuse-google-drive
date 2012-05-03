@@ -644,7 +644,7 @@ void gdi_get_file_list(const char *path, struct gdi_state *state)
 	headers = curl_slist_append(headers, header_str);
 
 	size_t num_pages = 5;
-	for(; next; )
+	while(next)
 	{
 
 		CURL* handle = curl_easy_init();
