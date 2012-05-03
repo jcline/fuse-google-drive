@@ -97,6 +97,13 @@ char* filenameencode (const char *filename, size_t *length)
 	return result;
 }
 
+/** Creates and fills in a gd_fs_entry_t from an <entry>...</entry> in xml.
+ *
+ *  @xml  the xml containing the entry
+ *  @node the node representing this <entry>...</entry> block
+ *
+ *  @returns pointer to gd_fs_entry_t with fields filled in as needed
+ */
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 {
 	struct gd_fs_entry_t* entry;
@@ -186,6 +193,12 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	return entry;
 }
 
+/** Searches hash table for a filename.
+ *
+ *  @key the name of the file to find
+ *
+ *  @returns the gd_fs_entry_t representing that file
+ */
 struct gd_fs_entry_t* gd_fs_entry_find(const char* key)
 {
 	ENTRY keyentry;
@@ -197,6 +210,13 @@ struct gd_fs_entry_t* gd_fs_entry_find(const char* key)
 	return (struct gd_fs_entry*) entry->data;
 }
 
+/** Creates the hash table for speeding up file finding.
+ *
+ *  @size the size we want to make this hash table
+ *  @head the first gd_fs_entry_t in the list of files
+ *
+ *  @returns 0 on success, 1 on failure
+ */
 int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 {
 	int ret = hcreate(size);
