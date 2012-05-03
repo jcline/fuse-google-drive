@@ -32,9 +32,10 @@ char filenameunsafe[] =
 /** Escapes unsafe characters for filenames.
  *
  *  @filename the string to escape
- *  @length
+ *  @length length of filename
  *          precondition:  strlen(filename)
  *          postcondition: strlen(escaped filename)
+ *
  *  @returns escaped, null terminated string
  */
 char* filenameencode (const char *filename, size_t *length)
