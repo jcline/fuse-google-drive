@@ -353,6 +353,7 @@ int gdi_init(struct gdi_state* state)
 	state->head = NULL;
 	state->tail = NULL;
 	state->callback_error = 0;
+	state->num_files = 0;
 
 	char *xdg_conf = getenv("XDG_CONFIG_HOME");
 	char *pname = "/fuse-google-drive/";
@@ -631,7 +632,7 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 			}
 		}
 	}
-	state->num_files = count;
+	state->num_files += count;
 	return next;
 }
 

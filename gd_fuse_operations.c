@@ -50,7 +50,7 @@ int gd_getattr (const char *path, struct stat *statbuf)
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
 	if(entry)
 		statbuf->st_size = entry->size;
-	printf("%s\t-\t%s\n", path, filename);
+	//printf("%s\t-\t%s\n", path, filename);
 	if( strcmp("/", path) == 0)
 	{
 		statbuf->st_mode = S_IFDIR | 0700;
