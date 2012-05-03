@@ -3,7 +3,7 @@ fuse-google-drive is a fuse filesystem wrapper for Google Drive released under G
 Currently in preliminary development stages.
 
 Status:
-	directory listing works, incorrect stat() info
+	directory listing works, incorrect stat() info, filesize is correct
 	redirecturi is now hardcoded -- you do not need the file
 	clientsecrets and client id should now be in $XDG_CONFIG_HOME/fuse-google-drive/
 
