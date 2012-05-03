@@ -530,7 +530,7 @@ int gdi_init(struct gdi_state* state)
 	if(state->callback_error)
 		goto init_fail;
 
-	gdi_get_file_list("/", state);
+	gdi_get_file_list(state);
 	if(create_hash_table(state->num_files*4, state->head))
 	{
 		printf("create_hash failed\n");
@@ -586,6 +586,18 @@ size_t remove_newlines(char *str, size_t length)
 	return move_iter+1;
 }
 
+/** Curl callback to handle Google's response when listing files.
+ *
+ *  Because Google's server returns the file listing in chunks, this function
+ *  puts all those chunks together into one contiguous string.
+ *
+ *  @data  char*        the response from Google's server
+ *  @size  size_t       size of one element in data
+ *  @nmemb size_t       number of size chunks
+ *  @store struct str_t our contiguous string
+ *
+ *  @returns the size of the data read, curl expects size*nmemb or it errors
+ */
 size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
 {
 	struct str_t *resp = (struct str_t*) store;
@@ -597,6 +609,16 @@ size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store
 	return size*nmemb;
 }
 
+/** Build linked list of files.
+ *
+ *  Calls the XML parsing code to get gd_fs_entry_ts for creating a list of files.
+ *
+ *  @xml   a string containing the xml to parse, this is what we get from curl
+ *  @len   the length of xml
+ *  @state the variable we store this mount's state in
+ *
+ *  @returns the link to the  next page of the directory listing, as found in xml
+ */
 char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 {
 	xmlDocPtr xmldoc = xmlParseMemory(xml, len);
@@ -643,7 +665,17 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 	return next;
 }
 
-void gdi_get_file_list(const char *path, struct gdi_state *state)
+/** Gets a listing of all the files for this mount.
+ *
+ *  Calls curl repeatedly to get each page of xml from the directory-listing
+ *  Google API. Then parses those pages into a list of gd_fs_entry_ts, stored
+ *  in state.
+ *
+ *  @state the state for this mount
+ *
+ *  @returns void
+ */
+void gdi_get_file_list(struct gdi_state *state)
 {
 	struct str_t resp;
 	resp.len = 0;
