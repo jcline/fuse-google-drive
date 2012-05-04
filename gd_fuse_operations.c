@@ -50,7 +50,7 @@ int gd_getattr (const char *path, struct stat *statbuf)
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
 	if(entry)
 		statbuf->st_size = entry->size;
-	//printf("%s\t-\t%s\n", path, filename);
+
 	if( strcmp("/", path) == 0)
 	{
 		statbuf->st_mode = S_IFDIR | 0700;
@@ -181,6 +181,42 @@ int gd_truncate (const char *path, off_t newsize)
  */
 int gd_open (const char *path, struct fuse_file_info * fileinfo)
 {
+	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
+
+	int flags = fi->flags;
+	/*
+	  Is it possible to have a file in drive or docs you cannot read?
+		I suppose it may be the case that you lost read access since last checked,
+		but between open() and read() that can happen anyway, so why check here at
+		all?
+		Maybe something in the Access Control Lists allows this?
+	*/
+	if(flags & O_RDONLY);
+
+	// people can share read only files with you
+	if(flags & O_WRONLY)
+	{
+
+	}
+
+	if(flags & O_RDWR)
+	{
+
+	}
+
+	// Don't need to check O_CREAT, O_EXCL, O_TRUNC
+	// Do we need to check all these?
+	if(flags & O_APPEND);
+	if(flags & O_ASYNC);
+	if(flags & O_DIRECT);
+	// if(flags & O_DIRECTORY); // opendir() only?
+	// if(flags & O_LARGEFILE);
+	if(flags & O_NOATIME); // does google drive do this anyway?
+	if(flags & O_NOCTTY); // does this do anything/is it passed to us at all?
+	if(flags & O_NOFOLLOW);
+	if(flags & O_NONBLOCK || flags & O_NONBLOCK); // read man 2 fcntl and man 7 fifo
+	if(flags & O_SYNC);
+
 	return 0;
 }
 
