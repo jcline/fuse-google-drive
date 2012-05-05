@@ -191,7 +191,10 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 		all?
 		Maybe something in the Access Control Lists allows this?
 	*/
-	if(flags & O_RDONLY);
+	if(flags & O_RDONLY)
+	{
+
+	}
 
 	// people can share read only files with you
 	if(flags & O_WRONLY)
