@@ -193,9 +193,12 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	*/
 	if(flags & O_RDONLY)
 	{
-
+		// Assuming we can always read for now
+		return 0;
 	}
 
+	// TODO: everything below here
+	// NOTE: O_RDWR won't work, just O_RDONLY
 	// people can share read only files with you
 	if(flags & O_WRONLY)
 	{
