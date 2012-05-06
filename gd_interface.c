@@ -728,3 +728,10 @@ void gdi_get_file_list(struct gdi_state *state)
 	curl_slist_free_all(headers);
 	free(header_str);
 }
+
+const char* gdi_strip_path(const char* path)
+{
+	char *filename = strrchr(path, '/');
+	++filename;
+	return filename;
+}

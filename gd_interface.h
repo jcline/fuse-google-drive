@@ -61,5 +61,6 @@ void gdi_destroy(struct gdi_state *state);
 
 /* Interface for various operations */
 void gdi_get_file_list(struct gdi_state *state);
+const char* gdi_strip_path(const char* path);
 
 #endif

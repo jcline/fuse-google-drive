@@ -45,8 +45,7 @@ int gd_getattr (const char *path, struct stat *statbuf)
 
 	struct fuse_context *fc = fuse_get_context();
 	memset(statbuf, 0, sizeof(struct stat));
-	char *filename = strrchr(path, '/');
-	++filename;
+	char *filename = gdi_strip_path(path);
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
 	if(entry)
 		statbuf->st_size = entry->size;
