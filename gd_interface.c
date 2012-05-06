@@ -601,6 +601,7 @@ size_t remove_newlines(char *str, size_t length)
  */
 size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
 {
+	//printf("%s\n", (char*)data);
 	struct str_t *resp = (struct str_t*) store;
 	resp->str = (char*) realloc(resp->str, resp->len + size*nmemb);
 	memset(resp->str + resp->len, 0, size*nmemb);
@@ -682,7 +683,7 @@ void gdi_get_file_list(struct gdi_state *state)
 	resp.len = 0;
 	resp.str = NULL;
 
-	char u[] = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true";
+	char u[] = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000";
 	char *next = u;
 
 	char oauth_str[] = "Authorization: OAuth ";
@@ -695,7 +696,7 @@ void gdi_get_file_list(struct gdi_state *state)
 	struct curl_slist *headers = NULL;
 	headers = curl_slist_append(headers, header_str);
 
-	printf("Please wait, loading a list of your files...\n");
+	printf("Please wait, loading a list of your files");
 	while(next)
 	{
 
@@ -720,7 +721,9 @@ void gdi_get_file_list(struct gdi_state *state)
 		free(resp.str);
 		resp.str = NULL;
 		resp.len = 0;
+		printf(".");
 	}
+	printf("\n");
 
 	curl_slist_free_all(headers);
 	free(header_str);
