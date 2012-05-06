@@ -183,7 +183,7 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 {
 	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
 
-	int flags = fi->flags;
+	int flags = fileinfo->flags;
 	/*
 	  Is it possible to have a file in drive or docs you cannot read?
 		I suppose it may be the case that you lost read access since last checked,
@@ -211,10 +211,10 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	// Do we need to check all these?
 	if(flags & O_APPEND);
 	if(flags & O_ASYNC);
-	if(flags & O_DIRECT);
+	//if(flags & O_DIRECT);
 	// if(flags & O_DIRECTORY); // opendir() only?
 	// if(flags & O_LARGEFILE);
-	if(flags & O_NOATIME); // does google drive do this anyway?
+	//if(flags & O_NOATIME); // does google drive do this anyway?
 	if(flags & O_NOCTTY); // does this do anything/is it passed to us at all?
 	if(flags & O_NOFOLLOW);
 	if(flags & O_NONBLOCK || flags & O_NONBLOCK); // read man 2 fcntl and man 7 fifo
