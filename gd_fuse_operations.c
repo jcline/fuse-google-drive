@@ -463,7 +463,7 @@ struct fuse_operations gd_oper = {
 	//.truncate    = gd_truncate,
 	// utime() deprecated, use utimens
 	.utime         = NULL,
-	//.open        = gd_open,
+	.open        = gd_open,
 	//.read        = gd_read,
 	//.write       = gd_write,
 	//.statfs      = gd_statfs,
