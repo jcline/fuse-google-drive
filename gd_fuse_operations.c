@@ -45,7 +45,7 @@ int gd_getattr (const char *path, struct stat *statbuf)
 
 	struct fuse_context *fc = fuse_get_context();
 	memset(statbuf, 0, sizeof(struct stat));
-	char *filename = gdi_strip_path(path);
+	const char *filename = gdi_strip_path(path);
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
 	if(entry)
 		statbuf->st_size = entry->size;
@@ -230,11 +230,13 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
  */
 int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileinfo)
 {
-	char* filename = gdi_strip_path(path);
+	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
 	int load = gdi_load(entry);
-	char* chunk = gdi_read(entry, size, offset);
-	memcpy(buf, chunk);
+	if(load)
+		return 1;
+	const char* chunk = gdi_read(entry, size, offset);
+	memcpy(buf, chunk, size);
 	return 0;
 }
 
