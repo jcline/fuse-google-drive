@@ -22,6 +22,12 @@
 #include <libxml/tree.h>
 #include <pthread.h>
 
+struct str_t {
+	char *str;
+	size_t len;
+};
+
+
 // Do we need to represent folders differently from files?
 // For the time being, ignore folders
 struct gd_fs_entry_t {
@@ -34,6 +40,9 @@ struct gd_fs_entry_t {
 	char *filename; // 'title' in the XML from directory-list
 	char *resourceID;
 	char *src; // The url for downloading the file
+
+	struct str_t cache;
+	int cached;
 
 	unsigned long size; // file size in bytes, 'gd:quotaBytesUsed' in XML
 	char *md5; // 'docs:md5Checksum' in XML, might be useful later

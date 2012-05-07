@@ -33,10 +33,6 @@
 #include "stack.h"
 #include "functional_stack.h"
 
-struct str_t {
-	char *str;
-	size_t len;
-};
 
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
 const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
@@ -225,6 +221,7 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 		state->callback_error = 1;
 		return size*nmemb;
 	}
+	printf("%s\n", (char*) data);
 
 	tmp = json_object_object_get(json, "access_token");
 	state->access_token = json_object_get_string(tmp);
@@ -721,9 +718,7 @@ void gdi_get_file_list(struct gdi_state *state)
 		free(resp.str);
 		resp.str = NULL;
 		resp.len = 0;
-		printf(".");
 	}
-	printf("\n");
 
 	curl_slist_free_all(headers);
 	free(header_str);
@@ -736,15 +731,40 @@ const char* gdi_strip_path(const char* path)
 	return filename;
 }
 
-int gdi_load(struct gd_fs_entry_t* entry)
+int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 {
 	int ret = 0;
 	if(entry->cached && !0 /*check for update here*/)
 	{
+		return ret;
 	}
 	else
 	{
-		// download file
+		char oauth_str[] = "Authorization: OAuth ";
+		char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) +
+					sizeof(oauth_str)));
+		char *iter = header_str;
+		iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
+		iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token));
+
+		struct curl_slist *headers = NULL;
+		headers = curl_slist_append(headers, header_str);
+
+		CURL* handle = curl_easy_init();
+		curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
+		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
+		curl_easy_setopt(handle, CURLOPT_URL, entry->src); // set URI
+		curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
+		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
+		// set curl_post_callback for parsing the server response
+		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
+		// set curl_post_callback's last parameter to state
+		curl_easy_setopt(handle, CURLOPT_WRITEDATA, &entry->cache);
+
+		curl_easy_perform(handle); // GET
+		curl_easy_cleanup(handle); // cleanup
+		curl_slist_free_all(headers);
+		entry->cached = 1;
 	}
 
 	return ret;
@@ -752,5 +772,5 @@ int gdi_load(struct gd_fs_entry_t* entry)
 
 const char* gdi_read(struct gd_fs_entry_t* entry, off_t offset)
 {
-	return entry->cache + offset;
+	return entry->cache.str + offset;
 }

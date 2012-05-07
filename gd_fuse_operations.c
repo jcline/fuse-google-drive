@@ -230,9 +230,10 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
  */
 int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileinfo)
 {
+	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
-	int load = gdi_load(entry);
+	int load = gdi_load(state, entry);
 	if(load)
 		return 1;
 	const char* chunk = gdi_read(entry, offset);
@@ -470,7 +471,7 @@ struct fuse_operations gd_oper = {
 	// utime() deprecated, use utimens
 	.utime         = NULL,
 	.open        = gd_open,
-	//.read        = gd_read,
+	.read        = gd_read,
 	//.write       = gd_write,
 	//.statfs      = gd_statfs,
 	//.flush       = gd_flush,
