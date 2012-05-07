@@ -235,7 +235,7 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 	int load = gdi_load(entry);
 	if(load)
 		return 1;
-	const char* chunk = gdi_read(entry, size, offset);
+	const char* chunk = gdi_read(entry, offset);
 	memcpy(buf, chunk, size);
 	return 0;
 }

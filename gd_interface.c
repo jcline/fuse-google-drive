@@ -735,3 +735,22 @@ const char* gdi_strip_path(const char* path)
 	++filename;
 	return filename;
 }
+
+int gdi_load(struct gd_fs_entry_t* entry)
+{
+	int ret = 0;
+	if(entry->cached && !0 /*check for update here*/)
+	{
+	}
+	else
+	{
+		// download file
+	}
+
+	return ret;
+}
+
+const char* gdi_read(struct gd_fs_entry_t* entry, off_t offset)
+{
+	return entry->cache + offset;
+}
