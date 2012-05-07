@@ -33,6 +33,7 @@ struct gd_fs_entry_t {
 
 	char *filename; // 'title' in the XML from directory-list
 	char *resourceID;
+	char *src; // The url for downloading the file
 
 	unsigned long size; // file size in bytes, 'gd:quotaBytesUsed' in XML
 	char *md5; // 'docs:md5Checksum' in XML, might be useful later

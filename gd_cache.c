@@ -143,6 +143,15 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					xmlFree(value);
 				}
 				break;
+			case 'c':
+				if(strcmp(name, "content") == 0)
+				{
+					value = xmlGetProp(c1, "src");
+					length = strlen(value);
+					entry->src = (char*) malloc(sizeof(char)*length);
+					memcpy(entry->src, value, length);
+				}
+				break;
 			case 'g': // 'gd:*'
 				// This doesn't seem to be working right
 				if(0 && strcmp(name, "gd:lastModifiedBy") == 0)
