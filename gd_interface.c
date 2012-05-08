@@ -221,19 +221,31 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 		state->callback_error = 1;
 		return size*nmemb;
 	}
-	printf("%s\n", (char*) data);
+	//printf("%s\n", (char*) data);
 
 	tmp = json_object_object_get(json, "access_token");
-	state->access_token = json_object_get_string(tmp);
+	const char* val = json_object_get_string(tmp);
+	size_t length = strlen(val);
+	state->access_token = (char*) malloc(sizeof(char)*length);
+	strcpy(state->access_token, val);
 	
 	tmp = json_object_object_get(json, "token_type");
-	state->token_type = json_object_get_string(tmp);
+	val = json_object_get_string(tmp);
+	length = strlen(val);
+	state->token_type = (char*) malloc(sizeof(char)*length);
+	strcpy(state->token_type, val);
 
 	tmp = json_object_object_get(json, "refresh_token");
-	state->refresh_token = json_object_get_string(tmp);
+	val = json_object_get_string(tmp);
+	length = strlen(val);
+	state->refresh_token = (char*) malloc(sizeof(char)*length);
+	strcpy(state->refresh_token, val);
 
 	tmp = json_object_object_get(json, "id_token");
-	state->id_token = json_object_get_string(tmp);
+	val = json_object_get_string(tmp);
+	length = strlen(val);
+	state->id_token = (char*) malloc(sizeof(char)*length);
+	strcpy(state->id_token, val);
 
 	tmp = json_object_object_get(json, "expires_in");
 	state->token_expiration = json_object_get_int(tmp);
@@ -688,7 +700,8 @@ void gdi_get_file_list(struct gdi_state *state)
 				30));
 	char *iter = header_str;
 	iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
-	iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token));
+	iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token)+1);
+	printf("%s\n", header_str);
 
 	struct curl_slist *headers = NULL;
 	headers = curl_slist_append(headers, header_str);
@@ -740,12 +753,15 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	}
 	else
 	{
+		entry->cache.str = NULL;
+		entry->cache.len = 0;
 		char oauth_str[] = "Authorization: OAuth ";
-		char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) +
+		char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) + 1 +
 					sizeof(oauth_str)));
 		char *iter = header_str;
 		iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
-		iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token));
+		iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token)+1);
+		printf("%s\n", header_str);
 
 		struct curl_slist *headers = NULL;
 		headers = curl_slist_append(headers, header_str);
@@ -772,5 +788,6 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 
 const char* gdi_read(struct gd_fs_entry_t* entry, off_t offset)
 {
+	printf("%s\n", entry->cache);
 	return entry->cache.str + offset;
 }
