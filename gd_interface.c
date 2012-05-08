@@ -672,6 +672,7 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 			}
 		}
 	}
+	xmlFreeDoc(xmldoc);
 	state->num_files += count;
 	return next;
 }
@@ -788,6 +789,8 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 
 const char* gdi_read(struct gd_fs_entry_t* entry, off_t offset)
 {
+	if(offset >= entry->cache.len)
+		return NULL;
 	printf("%s\n", entry->cache);
 	return entry->cache.str + offset;
 }
