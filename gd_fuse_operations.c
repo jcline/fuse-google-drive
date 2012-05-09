@@ -234,10 +234,10 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 	if(!entry)
-		return 1;
+		return 0;
 	int load = gdi_load(state, entry);
 	if(load)
-		return 1;
+		return 0;
 	const char const* chunk = gdi_read(entry, offset);
 	printf("%s\n", chunk);
 	size_t length = strlen(chunk);
@@ -480,7 +480,7 @@ struct fuse_operations gd_oper = {
 	//.write       = gd_write,
 	//.statfs      = gd_statfs,
 	//.flush       = gd_flush,
-	//.release     = gd_release,
+	.release     = gd_release,
 	//.fsync       = gd_fsync,
 	//.setxattr    = gd_setxattr,
 	//.getxattr    = gd_getxattr,
