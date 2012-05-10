@@ -616,7 +616,6 @@ size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store
 	memset(resp->str + resp->len, 0, size*nmemb);
 	memcpy(resp->str + resp->len, data, size*nmemb);
 	resp->len += size*nmemb;
-	printf("%d\n", size*nmemb);
 
 	return size*nmemb;
 }
