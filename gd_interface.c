@@ -708,22 +708,23 @@ void gdi_get_file_list(struct gdi_state *state)
 	headers = curl_slist_append(headers, header_str);
 
 	printf("Please wait, loading a list of your files");
+
+	CURL* handle = curl_easy_init();
+	//curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
+	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
+	curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
+	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
+	// set curl_post_callback for parsing the server response
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
+	// set curl_post_callback's last parameter to state
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &resp);
+
 	while(next)
 	{
 
-		CURL* handle = curl_easy_init();
-		//curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
-		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 		curl_easy_setopt(handle, CURLOPT_URL, next); // set URI
-		curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
-		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
-		// set curl_post_callback for parsing the server response
-		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
-		// set curl_post_callback's last parameter to state
-		curl_easy_setopt(handle, CURLOPT_WRITEDATA, &resp);
 
 		curl_easy_perform(handle); // GET
-		curl_easy_cleanup(handle); // cleanup
 
 		iter = strstr(resp.str, "<feed");
 		//if(iter == NULL)
@@ -734,6 +735,7 @@ void gdi_get_file_list(struct gdi_state *state)
 		resp.len = 0;
 	}
 
+	curl_easy_cleanup(handle); // cleanup
 	curl_slist_free_all(headers);
 	free(header_str);
 }
