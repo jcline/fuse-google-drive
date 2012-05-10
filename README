@@ -1,11 +1,12 @@
 fuse-google-drive is a fuse filesystem wrapper for Google Drive released under GPLv2
 
-Currently in preliminary development stages.
+Currently in alpha stages. Do not trust this for anything important.
 
 Status:
 	directory listing works, incorrect stat() info, filesize is correct
 	redirecturi is now hardcoded -- you do not need the file
 	clientsecrets and client id should now be in $XDG_CONFIG_HOME/fuse-google-drive/
+	read() partially works
 
 Discussion:
 	#fuse-google-drive on irc.freenode.net
