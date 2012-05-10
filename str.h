@@ -24,6 +24,10 @@
 struct str_t {
 	char *str;
 	size_t len;
+
+	// The location in str of the null character
+	// Should always equal str+len
+	char* null_ptr;
 };
 
 #endif
