@@ -46,3 +46,4 @@ Note: If $XDG_CONFIG_HOME is unset on your system, it defaults to ~/.config/.
 Thanks to:
 	http://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/
 	https://www.ibm.com/developerworks/linux/library/l-fuse/
+	Gregor on FreeNode
