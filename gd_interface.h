@@ -63,6 +63,6 @@ void gdi_destroy(struct gdi_state *state);
 void gdi_get_file_list(struct gdi_state *state);
 const char* gdi_strip_path(const char* path);
 int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry);
-const char* gdi_read(struct gd_fs_entry_t* entry, off_t offset);
+const char* gdi_read(size_t *size, struct gd_fs_entry_t* entry, off_t offset);
 
 #endif

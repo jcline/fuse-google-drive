@@ -787,10 +787,12 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	return ret;
 }
 
-const char* gdi_read(struct gd_fs_entry_t* entry, off_t offset)
+const char* gdi_read(size_t *size, struct gd_fs_entry_t* entry, off_t offset)
 {
-	if(offset >= entry->cache.len)
+	size_t remaining = (entry->cache.len < offset) ? 0 : entry->cache.len - offset;
+	*size = (remaining < size) ? remaining : size;
+	if(*size == 0)
 		return NULL;
-	printf("%s\n", entry->cache);
+	//printf("%s\n", entry->cache);
 	return entry->cache.str + offset;
 }

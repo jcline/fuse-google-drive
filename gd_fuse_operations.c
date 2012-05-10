@@ -238,10 +238,9 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 	int load = gdi_load(state, entry);
 	if(load)
 		return 0;
-	const char const* chunk = gdi_read(entry, offset);
+	size_t length = size;
+	const char const* chunk = gdi_read(&length, entry, offset);
 	printf("%s\n", chunk);
-	size_t length = strlen(chunk);
-	length = (length < size) ? length : size;
 	memcpy(buf, chunk, length);
 	return length;
 }
