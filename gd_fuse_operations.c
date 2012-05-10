@@ -57,7 +57,7 @@ int gd_getattr (const char *path, struct stat *statbuf)
 	}
 	else
 	{
-		statbuf->st_mode = S_IFREG | 0700;
+		statbuf->st_mode = S_IFREG | 0600;
 		statbuf->st_nlink=1;
 	}
 	statbuf->st_uid = fc->uid;
