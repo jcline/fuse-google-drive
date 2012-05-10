@@ -26,6 +26,5 @@ struct str_t {
 	size_t len;
 };
 
-
 #endif
 
