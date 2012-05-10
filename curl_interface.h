@@ -19,6 +19,9 @@
 #ifndef _CURL_INTERFACE_H
 #define _CURL_INTERFACE_H
 
+#include <curl/curl.h>
+#include <curl/multi.h>
+
 #include "str.h"
 
 struct response_t {
@@ -26,6 +29,17 @@ struct response_t {
 	struct str_t headers;
 
 	int flags;
+};
+
+struct request_t {
+	struct response_t response;
+	CURL* handle;
+	struct curl_slist* headers;
+};
+
+enum request_type_e {
+	POST,
+	GET,
 };
 
 int ci_init();

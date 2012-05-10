@@ -19,6 +19,9 @@
 #include "str.h"
 #include "curl_interface.h"
 
+#include <curl/curl.h>
+#include <curl/multi.h>
+
 int ci_init()
 {
 	return 0;
