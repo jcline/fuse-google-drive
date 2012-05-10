@@ -616,6 +616,7 @@ size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store
 	memset(resp->str + resp->len, 0, size*nmemb);
 	memcpy(resp->str + resp->len, data, size*nmemb);
 	resp->len += size*nmemb;
+	printf("%d\n", size*nmemb);
 
 	return size*nmemb;
 }
@@ -773,7 +774,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
 		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 		curl_easy_setopt(handle, CURLOPT_URL, entry->src); // set URI
-		curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
+		//curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
 		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
 		// set curl_post_callback for parsing the server response
 		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
