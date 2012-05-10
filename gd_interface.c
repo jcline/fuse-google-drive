@@ -770,7 +770,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		headers = curl_slist_append(headers, header_str);
 
 		CURL* handle = curl_easy_init();
-		curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
+		curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
 		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 		curl_easy_setopt(handle, CURLOPT_URL, entry->src); // set URI
 		//curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
