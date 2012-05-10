@@ -26,6 +26,7 @@
 
 #include "gd_cache.h"
 #include "stack.h"
+#include "str.h"
 
 struct gdi_state {
 	char *clientsecrets;

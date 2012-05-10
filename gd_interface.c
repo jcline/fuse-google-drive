@@ -32,6 +32,7 @@
 #include "gd_cache.h"
 #include "stack.h"
 #include "functional_stack.h"
+#include "str.h"
 
 
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";

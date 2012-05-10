@@ -25,6 +25,7 @@
 
 #include "gd_cache.h"
 #include "gd_interface.h"
+#include "str.h"
 
 /**
  *  Store any state about this mount in this structure.

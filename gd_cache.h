@@ -21,11 +21,7 @@
 
 #include <libxml/tree.h>
 #include <pthread.h>
-
-struct str_t {
-	char *str;
-	size_t len;
-};
+#include "str.h"
 
 
 // Do we need to represent folders differently from files?

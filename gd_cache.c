@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "gd_cache.h"
+#include "str.h"
 
 char filenameunsafe[] = 
 {
