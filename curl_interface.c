@@ -22,12 +22,23 @@
 #include <curl/curl.h>
 #include <curl/multi.h>
 
-int ci_init()
+int ci_init(struct request_t* request, struct str_t* uri,
+	 	size_t header_count, const struct str_t const* headers[],
+	 	enum request_type_e type)
+{
+	int ret = 0;
+
+	ret = ci_set_uri(request, uri);
+
+	return ret;
+}
+
+int ci_destroy(struct request_t* request)
 {
 	return 0;
 }
 
-int ci_destroy()
+int ci_set_uri(struct request_t* request, struct str_t* uri)
 {
 	return 0;
 }

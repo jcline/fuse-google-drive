@@ -24,25 +24,44 @@
 
 #include "str.h"
 
-struct response_t {
-	struct str_t message;
+/** A structure containing headers and body sections of an HTTP message
+ */
+struct message_t {
+	// The body part of an HTTP message, follows CRLF separator
+	struct str_t body;
+	// The headers part of an HTTP message
 	struct str_t headers;
 
+	// Any bit flags for control purposes (parsing etc)
 	int flags;
 };
 
+/** A structure for the state of an HTTP request.
+ */
 struct request_t {
-	struct response_t response;
+	// The response from the server
+	struct message_t response;
+	// The request to send to the server
+	struct message_t request;
+
+	// The handle for libcurl
 	CURL* handle;
+	// The header list for the handle
 	struct curl_slist* headers;
 };
 
+/** The type of an HTTP request
+ */
 enum request_type_e {
 	POST,
 	GET,
 };
 
-int ci_init();
-int ci_destroy();
+int ci_init(struct request_t* request, struct str_t* uri,
+	 	size_t header_count, const struct str_t const* headers[],
+	 	enum request_type_e type);
+int ci_destroy(struct request_t* request);
+
+int ci_set_uri(struct request_t* request, struct str_t* uri);
 
 #endif
