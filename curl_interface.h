@@ -21,4 +21,14 @@
 
 #include "str.h"
 
+struct response_t {
+	struct str_t message;
+	struct str_t headers;
+
+	int flags;
+};
+
+int ci_init();
+int ci_destroy();
+
 #endif

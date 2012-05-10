@@ -18,3 +18,13 @@
 
 #include "str.h"
 #include "curl_interface.h"
+
+int ci_init()
+{
+	return 0;
+}
+
+int ci_destroy()
+{
+	return 0;
+}
