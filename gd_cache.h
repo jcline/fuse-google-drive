@@ -30,8 +30,8 @@ struct gd_fs_entry_t {
 	char *author; // the file owner?
 	char *author_email;
 
-	char *lastModifiedBy; // do we even care about this?
-	char *lastModifiedBy_email;
+	struct str_t lastModifiedBy; // do we even care about this?
+	struct str_t lastModifiedBy_email;
 
 	struct str_t filename; // 'title' in the XML from directory-list
 	struct str_t resourceID;

@@ -159,16 +159,13 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					{
 						name = c2->name;
 						value = xmlNodeListGetString(xml, c2->children, 1);
-						length = xmlStrlen(value);
 						switch(*name)
 						{
 							case 'n':
-								entry->lastModifiedBy = (char*) malloc(sizeof(char)*length);
-								memcpy(entry->lastModifiedBy, value, length);
+								str_init_create(&entry->lastModifiedBy, value);
 								break;
 							case 'e':
-								entry->lastModifiedBy_email = (char*) malloc(sizeof(char)*length);
-								memcpy(entry->lastModifiedBy_email, value, length);
+								str_init_create(&entry->lastModifiedBy_email, value);
 								break;
 							default:
 								break;
