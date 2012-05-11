@@ -27,6 +27,13 @@ int str_init(struct str_t* str)
 	str->reserved = 0;
 }
 
+int str_destroy(struct str_t* str)
+{
+	free(str->str);
+	memset(str, 0, sizeof(struct str_t));
+	return 0;
+}
+
 int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[])
 {
 	size_t count = 0;
@@ -38,12 +45,5 @@ int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[])
 		str->len += strings[count]->len;
 	}
 	str->str[str->len] = 0;
-	return 0;
-}
-
-int str_destroy(struct str_t* str)
-{
-	free(str->str);
-	memset(str, 0, sizeof(struct str_t));
 	return 0;
 }
