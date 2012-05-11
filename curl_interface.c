@@ -51,6 +51,7 @@ int ci_init(struct request_t* request, struct str_t* uri,
 
 	ret = ci_create_header(request, header_count, headers);
 	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, request->headers); // Set headers
+	curl_easy_setopt(handle, CURLOPT_USERAGENT, "fuse-google-drive/0.1 Mozilla/5.0 (compatible)");
 
 	request->handle = handle;
 
