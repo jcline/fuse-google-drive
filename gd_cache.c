@@ -178,6 +178,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				value = xmlNodeListGetString(xml, c1->children, 1);
 				str_init_create(&entry->filename, value);
 				entry->filename.str = filenameencode(value, &entry->filename.len);
+				entry->filename.reserved = entry->filename.len;
 				xmlFree(value);
 				break;
 			case 's':
