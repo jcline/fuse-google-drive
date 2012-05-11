@@ -344,7 +344,7 @@ int gd_readdir (const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
 	while(iter != NULL)
 	{
 
-		if(filler(buf, iter->filename, NULL, 0))
+		if(filler(buf, iter->filename.str, NULL, 0))
 		{
 			fprintf(stderr, "readdir() filler()\n");
 			return -ENOMEM;

@@ -179,8 +179,8 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				break;
 			case 't': // 'title'
 				value = xmlNodeListGetString(xml, c1->children, 1);
-				length = xmlStrlen(value);
-				entry->filename = filenameencode(value, &length);
+				str_init_create(&entry->filename, value);
+				entry->filename.str = filenameencode(value, &entry->filename.len);
 				xmlFree(value);
 				break;
 			case 's':
@@ -238,7 +238,7 @@ int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 	struct gd_fs_entry_t *iter = head;
 	while(iter != NULL)
 	{
-		entry.key = iter->filename;
+		entry.key = iter->filename.str;
 		entry.data = iter;
 
 		ENTRY* entered = hsearch(entry, ENTER);

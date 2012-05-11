@@ -33,7 +33,7 @@ struct gd_fs_entry_t {
 	char *lastModifiedBy; // do we even care about this?
 	char *lastModifiedBy_email;
 
-	char *filename; // 'title' in the XML from directory-list
+	struct str_t filename; // 'title' in the XML from directory-list
 	char *resourceID;
 	struct str_t src; // The url for downloading the file
 
