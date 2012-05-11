@@ -34,14 +34,14 @@ struct gd_fs_entry_t {
 	char *lastModifiedBy_email;
 
 	struct str_t filename; // 'title' in the XML from directory-list
-	char *resourceID;
+	struct str_t resourceID;
 	struct str_t src; // The url for downloading the file
 
 	struct str_t cache;
 	int cached;
 
 	unsigned long size; // file size in bytes, 'gd:quotaBytesUsed' in XML
-	char *md5; // 'docs:md5Checksum' in XML, might be useful later
+	struct str_t md5; // 'docs:md5Checksum' in XML, might be useful later
 
 
 	// Add some data we can use in getattr()
