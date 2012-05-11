@@ -699,11 +699,8 @@ void gdi_get_file_list(struct gdi_state *state)
 	resp.len = 0;
 	resp.str = NULL;
 
-	// Do not call str_destroy on this...
 	struct str_t uri;
-	str_init(&uri);
-	uri.str = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000";
-	uri.len = strlen(uri.str);
+	str_init_create(&uri, "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000");
 
 	struct str_t* next = NULL;
 
@@ -711,20 +708,12 @@ void gdi_get_file_list(struct gdi_state *state)
 	struct str_t oauth_header;
 	// TODO: Remove when we switch to str_t for cache struct
 	struct str_t token;
-	str_init(&token);
-	token.str = state->access_token;
-	token.len = strlen(state->access_token);
+	str_init_create(&token, state->access_token);
 
 	str_init(&oauth_header);
-	str_init(&oauth);
+	str_init_create(&oauth, "Authorization: OAuth ");
 
-	oauth.str = "Authorization: OAuth ";
-	oauth.len = strlen(oauth.str);
-
-	struct str_t* concat[2];
-	concat[0] = &oauth;
-	concat[1] = &token;
-
+	struct str_t* concat[] = {&oauth, &token};
 	str_concat(&oauth_header, 2, concat);
 
 	struct request_t request;
@@ -744,6 +733,9 @@ void gdi_get_file_list(struct gdi_state *state)
 	} while(next);
 
 	ci_destroy(&request);
+	str_destroy(&uri);
+	str_destroy(&oauth);
+	str_destroy(&oauth_header);
 }
 
 const char* gdi_strip_path(const char* path)
