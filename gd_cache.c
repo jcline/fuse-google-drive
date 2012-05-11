@@ -234,7 +234,6 @@ int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 		return 1;
 	}
 
-	size_t debugcount = 0;
 	ENTRY entry;
 	struct gd_fs_entry_t *iter = head;
 	while(iter != NULL)
@@ -245,13 +244,12 @@ int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 		ENTRY* entered = hsearch(entry, ENTER);
 		if(0 && !entered)
 		{
-			fprintf(stderr, "hsearch(%ld): %s\n", debugcount, strerror(errno));
+			fprintf(stderr, "hsearch: %s\n", strerror(errno));
 			destroy_hash_table();
 			return 1;
 		}
 
 		iter = iter->next;
-		++debugcount;
 	}
 
 	return 0;
