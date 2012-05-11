@@ -22,15 +22,24 @@
 #include <curl/curl.h>
 #include <curl/multi.h>
 
+#include <string.h>
+
 int ci_init(struct request_t* request, struct str_t* uri,
-	 	size_t header_count, const struct str_t const* headers[],
+		size_t header_count, const struct str_t const headers[],
 		enum request_type_e type,
 		size_t (*callback) (void *data, size_t size, size_t nmemb, void *store))
 {
+	union func_u func;
 	int ret = 0;
 
+	memset(request, 0, sizeof(struct request_t));
+
+	fstack_init(&request->cleanup, 10);
 
 	CURL* handle = curl_easy_init();
+	func.func1 = curl_easy_cleanup;
+	fstack_push(&request->cleanup, handle, &func, 1);
+
 	curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 
@@ -40,10 +49,10 @@ int ci_init(struct request_t* request, struct str_t* uri,
 	// set curl_post_callback's last parameter to state
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &request->response);
 
-	request->handle = handle;
+	ret = ci_create_header(request, header_count, headers);
+	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, request->headers); // Set headers
 
-	curl_easy_perform(handle); // GET
-	curl_easy_cleanup(handle); // cleanup
+	request->handle = handle;
 
 	ret = ci_set_uri(request, uri);
 
@@ -53,6 +62,8 @@ int ci_init(struct request_t* request, struct str_t* uri,
 int ci_destroy(struct request_t* request)
 {
 	curl_slist_free_all(request->headers);
+	while(request->cleanup.size)
+		fstack_pop(&request->cleanup);
 	return 0;
 }
 
@@ -64,15 +75,25 @@ int ci_set_uri(struct request_t* request, struct str_t* uri)
 int ci_create_header(struct request_t* request,
 		size_t header_count, const struct str_t headers[])
 {
+	printf("CI_CREATE_HEADER\n\n");
+	union func_u func;
 	struct curl_slist *header_list = NULL;
 
 	size_t count = 0;
 	for(; count < header_count; ++count)
 	{
+		printf("%s\n", headers[count].str);
 		header_list = curl_slist_append(header_list, headers[count].str);
 	}
 
 	request->headers = header_list;
+	func.func1 = curl_slist_free_all;
+	fstack_push(&request->cleanup, header_list, &func, 1);
 
 	return 0;
+}
+
+int ci_request(struct request_t* request)
+{
+	return curl_easy_perform(request->handle);
 }

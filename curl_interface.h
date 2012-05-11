@@ -23,6 +23,8 @@
 #include <curl/multi.h>
 
 #include "str.h"
+#include "stack.h"
+#include "functional_stack.h"
 
 /** A structure containing headers and body sections of an HTTP message
  */
@@ -51,6 +53,9 @@ struct request_t {
 
 	// Callback for this request
 	size_t (*callback) (void *data, size_t size, size_t nmemb, void *store);
+
+	// Stack for cleanups
+	struct stack_t cleanup;
 };
 
 /** The type of an HTTP request
@@ -61,7 +66,7 @@ enum request_type_e {
 };
 
 int ci_init(struct request_t* request, struct str_t* uri,
-	 	size_t header_count, const struct str_t const* headers[],
+		size_t header_count, const struct str_t headers[],
 		enum request_type_e type,
 		size_t (*callback) (void *data, size_t size, size_t nmemb, void *store));
 int ci_destroy(struct request_t* request);
@@ -69,5 +74,7 @@ int ci_destroy(struct request_t* request);
 int ci_create_header(struct request_t* request,
 		size_t header_count, const struct str_t headers[]);
 int ci_set_uri(struct request_t* request, struct str_t* uri);
+
+int ci_request(struct request_t* request);
 
 #endif
