@@ -33,7 +33,7 @@ int str_create(struct str_t* str, size_t str_count, struct str_t* strings)
 	for(; count < str_count; ++count)
 	{
 		str->str = (char*) realloc(str->str, str->len + strings[count].len);
-		memcpy(str->str + str_len, strings[count].str, strings[count].len);
+		memcpy(str->str + str->len, strings[count].str, strings[count].len);
 		str->len += strings[count].len;
 	}
 	return 0;
