@@ -33,6 +33,7 @@
 #include "stack.h"
 #include "functional_stack.h"
 #include "str.h"
+#include "curl_interface.h"
 
 
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
@@ -755,7 +756,8 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	{
 		return ret;
 	}
-	else
+	/*
+	else if(0)
 	{
 		entry->cache.str = NULL;
 		entry->cache.len = 0;
@@ -785,6 +787,21 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		curl_easy_cleanup(handle); // cleanup
 		curl_slist_free_all(headers);
 		entry->cached = 1;
+	}
+	*/
+	else
+	{
+		struct str_t oauth_str;
+
+		// until we use str_t in the cache
+		struct str_t src;
+		src.str = entry->src;
+		src.len = strlen(entry->src);
+
+		struct request_t request;
+		ci_init(&request, &src, 1, &oauth_str, GET, curl_get_list_callback);
+		ci_request(&request);
+		ci_destroy(&request);
 	}
 
 	return ret;
