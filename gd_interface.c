@@ -819,6 +819,9 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		struct request_t request;
 		ci_init(&request, &src, 1, &oauth_header, GET, curl_get_list_callback);
 		ci_request(&request);
+
+		str_swap(&request.response.body, &entry->cache);
+
 		ci_destroy(&request);
 		entry->cached = 1;
 	}

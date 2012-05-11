@@ -31,6 +31,7 @@ int str_init(struct str_t* str);
 int str_destroy(struct str_t* str);
 
 int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[]);
+void str_swap(struct str_t* a, struct str_t* b);
 
 #endif
 

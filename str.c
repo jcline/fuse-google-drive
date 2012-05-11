@@ -47,3 +47,13 @@ int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[])
 	str->str[str->len] = 0;
 	return 0;
 }
+
+void str_swap(struct str_t* a, struct str_t* b)
+{
+	char* tmp = a->str;
+	const size_t len = a->len;
+	a->str = b->str;
+	a->len = b->len;
+	b->str = tmp;
+	b->len = len;
+}
