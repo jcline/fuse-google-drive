@@ -148,9 +148,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				if(strcmp(name, "content") == 0)
 				{
 					value = xmlGetProp(c1, "src");
-					length = strlen(value);
-					entry->src = (char*) malloc(sizeof(char)*length);
-					memcpy(entry->src, value, length);
+					str_init_create(&entry->src, value);
 				}
 				break;
 			case 'g': // 'gd:*'

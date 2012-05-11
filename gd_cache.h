@@ -35,7 +35,7 @@ struct gd_fs_entry_t {
 
 	char *filename; // 'title' in the XML from directory-list
 	char *resourceID;
-	char *src; // The url for downloading the file
+	struct str_t src; // The url for downloading the file
 
 	struct str_t cache;
 	int cached;

@@ -771,13 +771,8 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 
 		str_concat(&oauth_header, 2, concat);
 
-		// until we use str_t in the cache
-		struct str_t src;
-		src.str = entry->src;
-		src.len = strlen(entry->src);
-
 		struct request_t request;
-		ci_init(&request, &src, 1, &oauth_header, GET, curl_get_list_callback);
+		ci_init(&request, &entry->src, 1, &oauth_header, GET, curl_get_list_callback);
 		ci_request(&request);
 
 		str_swap(&request.response.body, &entry->cache);
