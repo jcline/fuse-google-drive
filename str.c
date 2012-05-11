@@ -23,7 +23,6 @@
 int str_init(struct str_t* str)
 {
 	str->str = NULL;
-	str->null_ptr = NULL;
 	str->len = 0;
 	str->reserved = 0;
 }
@@ -33,11 +32,9 @@ int str_create(struct str_t* str, size_t str_count, struct str_t* strings)
 	size_t count = 0;
 	for(; count < str_count; ++count)
 	{
-		size_t distance = str->null_ptr - str->str;
 		str->str = (char*) realloc(str->str, str->len + strings[count].len);
-		memcpy(str->null_ptr, strings[count].str, strings[count].len);
+		memcpy(str->str + str_len, strings[count].str, strings[count].len);
 		str->len += strings[count].len;
-		str->null_ptr = str->str + str->len;
 	}
 	return 0;
 }
