@@ -75,7 +75,6 @@ int ci_set_uri(struct request_t* request, struct str_t* uri)
 int ci_create_header(struct request_t* request,
 		size_t header_count, const struct str_t headers[])
 {
-	printf("CI_CREATE_HEADER\n\n");
 	union func_u func;
 	struct curl_slist *header_list = NULL;
 
@@ -96,4 +95,13 @@ int ci_create_header(struct request_t* request,
 int ci_request(struct request_t* request)
 {
 	return curl_easy_perform(request->handle);
+}
+
+void ci_clear_response(struct request_t* request)
+{
+	str_destroy(&request->response.body);
+	str_destroy(&request->response.headers);
+	str_init(&request->response.body);
+	str_init(&request->response.headers);
+	request->response.flags = 0;
 }

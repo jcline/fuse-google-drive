@@ -632,16 +632,18 @@ size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store
  *
  *  @returns the link to the  next page of the directory listing, as found in xml
  */
-char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
+struct str_t* xml_parse_file_list(struct str_t* xml, struct gdi_state *state)
 {
-	xmlDocPtr xmldoc = xmlParseMemory(xml, len);
+	printf("%s\n", xml->str);
+	xmlDocPtr xmldoc = xmlParseMemory(xml->str, xml->len);
 
 	xmlNodePtr node;
 
 	size_t count = 0;
 	struct gd_fs_entry_t *tmp = state->tail;
 
-	char *next = NULL;
+	struct str_t* next = NULL;
+
 	if(xmldoc == NULL || xmldoc->children == NULL || xmldoc->children->children == NULL)
 		return NULL;
 	for(node = xmldoc->children->children; node != NULL; node = node->next)
@@ -669,7 +671,10 @@ char* xml_parse_file_list(const char *xml, size_t len, struct gdi_state *state)
 			{
 				if(strcmp(prop, "next") == 0)
 				{
-					next = xmlGetProp(node, "href");
+					next = (struct str_t*) malloc(sizeof(struct str_t));
+					str_init(next);
+					next->str = xmlGetProp(node, "href");
+					next->len = strlen(next->str);
 				}
 			}
 		}
@@ -695,51 +700,51 @@ void gdi_get_file_list(struct gdi_state *state)
 	resp.len = 0;
 	resp.str = NULL;
 
-	char u[] = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000";
-	char *next = u;
+	// Do not call str_destroy on this...
+	struct str_t uri;
+	str_init(&uri);
+	uri.str = "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000";
+	uri.len = strlen(uri.str);
 
-	char oauth_str[] = "Authorization: OAuth ";
-	char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) +
-				30));
-	char *iter = header_str;
-	iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
-	iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token)+1);
-	printf("%s\n", header_str);
+	struct str_t* next = NULL;
 
-	struct curl_slist *headers = NULL;
-	headers = curl_slist_append(headers, header_str);
+	struct str_t oauth;
+	struct str_t oauth_header;
+	// TODO: Remove when we switch to str_t for cache struct
+	struct str_t token;
+	str_init(&token);
+	token.str = state->access_token;
+	token.len = strlen(state->access_token);
 
-	printf("Please wait, loading a list of your files");
+	str_init(&oauth_header);
+	str_init(&oauth);
 
-	CURL* handle = curl_easy_init();
-	//curl_easy_setopt(handle, CURLOPT_VERBOSE,1);
-	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
-	curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
-	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
-	// set curl_post_callback for parsing the server response
-	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
-	// set curl_post_callback's last parameter to state
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &resp);
+	oauth.str = "Authorization: OAuth ";
+	oauth.len = strlen(oauth.str);
 
-	while(next)
+	struct str_t* concat[2];
+	concat[0] = &oauth;
+	concat[1] = &token;
+
+	str_concat(&oauth_header, 2, concat);
+
+	struct request_t request;
+	ci_init(&request, &uri, 1, &oauth_header, GET, curl_get_list_callback);
+	do
 	{
 
-		curl_easy_setopt(handle, CURLOPT_URL, next); // set URI
+		ci_request(&request);
 
-		curl_easy_perform(handle); // GET
+		str_destroy(next);
+		free(next);
+		next = xml_parse_file_list(&request.response.body, state);
+		if(next)
+			ci_set_uri(&request, next);
 
-		iter = strstr(resp.str, "<feed");
-		//if(iter == NULL)
-		// TODO: errors
-		next = xml_parse_file_list(iter, resp.len - (iter - resp.str), state);
-		free(resp.str);
-		resp.str = NULL;
-		resp.len = 0;
-	}
+		ci_clear_response(&request);
+	} while(next);
 
-	curl_easy_cleanup(handle); // cleanup
-	curl_slist_free_all(headers);
-	free(header_str);
+	ci_destroy(&request);
 }
 
 const char* gdi_strip_path(const char* path)

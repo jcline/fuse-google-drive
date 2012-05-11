@@ -29,6 +29,8 @@ int str_init(struct str_t* str)
 
 int str_destroy(struct str_t* str)
 {
+	if(!str)
+		return 0;
 	free(str->str);
 	memset(str, 0, sizeof(struct str_t));
 	return 0;

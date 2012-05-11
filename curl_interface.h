@@ -77,4 +77,6 @@ int ci_set_uri(struct request_t* request, struct str_t* uri);
 
 int ci_request(struct request_t* request);
 
+void ci_clear_response(struct request_t* request);
+
 #endif
