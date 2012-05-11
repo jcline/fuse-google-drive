@@ -148,9 +148,8 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					str_init_create(&entry->src, value);
 				}
 				break;
-			case 'g': // 'gd:*'
-				// This doesn't seem to be working right
-				if(0 && strcmp(name, "gd:lastModifiedBy") == 0)
+			case 'l':
+				if(strcmp(name, "lastModifiedBy") == 0)
 				{
 					for(c2 = c1->children; c2 != NULL; c2 = c2->next)
 					{
