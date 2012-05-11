@@ -230,7 +230,7 @@ int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 	int ret = hcreate(size);
 	if(!ret)
 	{
-		printf("hcreate failed\n");
+		fprintf(stderr, "hcreate failed\n");
 		return 1;
 	}
 
