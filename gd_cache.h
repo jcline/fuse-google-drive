@@ -27,8 +27,8 @@
 // Do we need to represent folders differently from files?
 // For the time being, ignore folders
 struct gd_fs_entry_t {
-	char *author; // the file owner?
-	char *author_email;
+	struct str_t author; // the file owner?
+	struct str_t author_email;
 
 	struct str_t lastModifiedBy; // do we even care about this?
 	struct str_t lastModifiedBy_email;
