@@ -15,5 +15,36 @@
 	with this program; if not, write to the Free Software Foundation, Inc.,
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+#include <stdlib.h>
+#include <string.h>
 
 #include "str.h"
+
+int str_init(struct str_t* str)
+{
+	str->str = NULL;
+	str->null_ptr = NULL;
+	str->len = 0;
+	str->reserved = 0;
+}
+
+int str_create(struct str_t* str, size_t str_count, struct str_t* strings)
+{
+	size_t count = 0;
+	for(; count < str_count; ++count)
+	{
+		size_t distance = str->null_ptr - str->str;
+		str->str = (char*) realloc(str->str, str->len + strings[count].len);
+		memcpy(str->null_ptr, strings[count].str, strings[count].len);
+		str->len += strings[count].len;
+		str->null_ptr = str->str + str->len;
+	}
+	return 0;
+}
+
+int str_destroy(struct str_t* str)
+{
+	free(str->str);
+	memset(str, 0, sizeof(struct str_t));
+	return 0;
+}

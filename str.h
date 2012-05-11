@@ -24,11 +24,14 @@
 struct str_t {
 	char *str;
 	size_t len;
+	size_t reserved;
 
 	// The location in str of the null character
 	// Should always equal str+len
 	char* null_ptr;
 };
+
+int str_create(struct str_t* str, size_t str_count, struct str_t* strings);
 
 #endif
 
