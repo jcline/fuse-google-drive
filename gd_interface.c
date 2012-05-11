@@ -756,39 +756,6 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	{
 		return ret;
 	}
-	/*
-	else if(0)
-	{
-		entry->cache.str = NULL;
-		entry->cache.len = 0;
-		char oauth_str[] = "Authorization: OAuth ";
-		char *header_str = (char*) malloc(sizeof(char) * (strlen(state->access_token) + 1 +
-					sizeof(oauth_str)));
-		char *iter = header_str;
-		iter += add_unencoded_str(iter, oauth_str, sizeof(oauth_str));
-		iter += add_unencoded_str(iter, state->access_token, strlen(state->access_token)+1);
-		printf("%s\n", header_str);
-
-		struct curl_slist *headers = NULL;
-		headers = curl_slist_append(headers, header_str);
-
-		CURL* handle = curl_easy_init();
-		curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
-		curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
-		curl_easy_setopt(handle, CURLOPT_URL, entry->src); // set URI
-		//curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
-		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers); // Set headers
-		// set curl_post_callback for parsing the server response
-		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_get_list_callback);
-		// set curl_post_callback's last parameter to state
-		curl_easy_setopt(handle, CURLOPT_WRITEDATA, &entry->cache);
-
-		curl_easy_perform(handle); // GET
-		curl_easy_cleanup(handle); // cleanup
-		curl_slist_free_all(headers);
-		entry->cached = 1;
-	}
-	*/
 	else
 	{
 		struct str_t oauth;
