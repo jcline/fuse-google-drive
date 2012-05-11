@@ -20,11 +20,25 @@
 
 #include "str.h"
 
-int str_init(struct str_t* str)
+void str_init(struct str_t* str)
 {
 	str->str = NULL;
 	str->len = 0;
 	str->reserved = 0;
+}
+
+int str_init_create(struct str_t* str, const char const* value)
+{
+	str_init(str);
+	size_t len = strlen(value);
+	size_t reserved = len+1;
+	str->str = (char*) malloc(sizeof(char) * reserved);
+	if(!str->str)
+		return 1;
+	str->reserved = reserved;
+	memcpy(str->str, value, reserved);
+	str->len = len;
+	return 0;
 }
 
 int str_destroy(struct str_t* str)

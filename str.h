@@ -27,7 +27,8 @@ struct str_t {
 	size_t reserved;
 };
 
-int str_init(struct str_t* str);
+void str_init(struct str_t* str);
+int str_init_create(struct str_t* str, const char const* value);
 int str_destroy(struct str_t* str);
 
 int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[]);
