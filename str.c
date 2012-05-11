@@ -32,11 +32,12 @@ int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[])
 	size_t count = 0;
 	for(; count < str_count; ++count)
 	{
-		str->str = (char*) realloc(str->str, str->len + strings[count]->len);
-		str->reserved = str->len + strings[count]->len;
+		str->str = (char*) realloc(str->str, str->len + strings[count]->len + 1);
+		str->reserved = str->len + strings[count]->len + 1;
 		memcpy(str->str + str->len, strings[count]->str, strings[count]->len);
 		str->len += strings[count]->len;
 	}
+	str->str[str->len] = 0;
 	return 0;
 }
 
