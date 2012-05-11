@@ -791,7 +791,25 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	*/
 	else
 	{
-		struct str_t oauth_str;
+		struct str_t oauth;
+		struct str_t oauth_header;
+		// TODO: Remove when we switch to str_t for cache struct
+		struct str_t token;
+		str_init(&token);
+		token.str = state->access_token;
+		token.len = strlen(state->access_token);
+
+		str_init(&oauth_header);
+		str_init(&oauth);
+
+		oauth.str = "Authorization: OAuth ";
+		oauth.len = strlen(oauth.str);
+
+		struct str_t* concat[2];
+		concat[0] = &oauth;
+		concat[1] = &token;
+
+		str_concat(&oauth_header, 2, concat);
 
 		// until we use str_t in the cache
 		struct str_t src;
@@ -799,7 +817,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		src.len = strlen(entry->src);
 
 		struct request_t request;
-		ci_init(&request, &src, 1, &oauth_str, GET, curl_get_list_callback);
+		ci_init(&request, &src, 1, &oauth_header, GET, curl_get_list_callback);
 		ci_request(&request);
 		ci_destroy(&request);
 	}
