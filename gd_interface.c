@@ -223,7 +223,6 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 		state->callback_error = 1;
 		return size*nmemb;
 	}
-	//printf("%s\n", (char*) data);
 
 	tmp = json_object_object_get(json, "access_token");
 	const char* val = json_object_get_string(tmp);
@@ -612,7 +611,6 @@ size_t remove_newlines(char *str, size_t length)
  */
 size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
 {
-	//printf("%s\n", (char*)data);
 	struct str_t *resp = (struct str_t*) store;
 	resp->str = (char*) realloc(resp->str, resp->len + size*nmemb + 1);
 	memset(resp->str + resp->len, 0, size*nmemb + 1);
@@ -758,9 +756,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		struct str_t oauth_header;
 		// TODO: Remove when we switch to str_t for cache struct
 		struct str_t token;
-		str_init(&token);
-		token.str = state->access_token;
-		token.len = strlen(state->access_token);
+		str_init_create(&token, state->access_token);
 
 		str_init(&oauth_header);
 		str_init_create(&oauth, "Authorization: OAuth ");
@@ -778,6 +774,8 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		str_swap(&request.response.body, &entry->cache);
 
 		ci_destroy(&request);
+		str_destroy(&oauth_header);
+		str_destroy(&token);
 		entry->cached = 1;
 	}
 
@@ -790,6 +788,5 @@ const char* gdi_read(size_t *size, struct gd_fs_entry_t* entry, off_t offset)
 	*size = (remaining < *size) ? remaining : *size;
 	if(*size == 0)
 		return NULL;
-	//printf("%s\n", entry->cache);
 	return entry->cache.str + offset;
 }
