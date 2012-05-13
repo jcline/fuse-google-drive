@@ -193,8 +193,7 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	*/
 	if(flags & O_RDONLY)
 	{
-		// Assuming we can always read for now
-		return 0;
+
 	}
 
 	// TODO: everything below here
@@ -223,6 +222,11 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	if(flags & O_NONBLOCK || flags & O_NONBLOCK); // read man 2 fcntl and man 7 fifo
 	if(flags & O_SYNC);
 
+	// If we have access to this file, then load it
+	int load = gdi_load(state, entry);
+	if(load)
+		return -1;
+
 	return 0;
 }
 
@@ -235,9 +239,6 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 	if(!entry)
-		return 0;
-	int load = gdi_load(state, entry);
-	if(load)
 		return 0;
 	size_t length = size;
 	const char const* chunk = gdi_read(&length, entry, offset);
