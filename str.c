@@ -30,15 +30,7 @@ void str_init(struct str_t* str)
 int str_init_create(struct str_t* str, const char const* value)
 {
 	str_init(str);
-	size_t len = strlen(value);
-	size_t reserved = len+1;
-	str->str = (char*) malloc(sizeof(char) * reserved);
-	if(!str->str)
-		return 1;
-	str->reserved = reserved;
-	memcpy(str->str, value, reserved);
-	str->len = len;
-	return 0;
+	return str_char_concat(str, value);
 }
 
 int str_destroy(struct str_t* str)
@@ -72,4 +64,13 @@ void str_swap(struct str_t* a, struct str_t* b)
 	a->len = b->len;
 	b->str = tmp;
 	b->len = len;
+}
+
+int str_char_concat(struct str_t* str, const char const* value)
+{
+	struct str_t s;
+	s.str = value;
+	s.len = strlen(value);
+	struct str_t* array[] = {&s};
+	return str_concat(str, 1, array);
 }
