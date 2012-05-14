@@ -597,29 +597,6 @@ size_t remove_newlines(char *str, size_t length)
 	return move_iter+1;
 }
 
-/** Curl callback to handle Google's response when listing files.
- *
- *  Because Google's server returns the file listing in chunks, this function
- *  puts all those chunks together into one contiguous string.
- *
- *  @data  char*        the response from Google's server
- *  @size  size_t       size of one element in data
- *  @nmemb size_t       number of size chunks
- *  @store struct str_t our contiguous string
- *
- *  @returns the size of the data read, curl expects size*nmemb or it errors
- */
-size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store)
-{
-	struct str_t *resp = (struct str_t*) store;
-	resp->str = (char*) realloc(resp->str, resp->len + size*nmemb + 1);
-	memset(resp->str + resp->len, 0, size*nmemb + 1);
-	memcpy(resp->str + resp->len, data, size*nmemb);
-	resp->len += size*nmemb;
-
-	return size*nmemb;
-}
-
 /** Build linked list of files.
  *
  *  Calls the XML parsing code to get gd_fs_entry_ts for creating a list of files.
@@ -716,7 +693,7 @@ void gdi_get_file_list(struct gdi_state *state)
 	str_concat(&oauth_header, 2, concat);
 
 	struct request_t request;
-	ci_init(&request, &uri, 1, &oauth_header, GET, curl_get_list_callback);
+	ci_init(&request, &uri, 1, &oauth_header, GET);
 	do
 	{
 
@@ -769,7 +746,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		str_concat(&oauth_header, 2, concat);
 
 		struct request_t request;
-		ci_init(&request, &entry->src, 1, &oauth_header, GET, curl_get_list_callback);
+		ci_init(&request, &entry->src, 1, &oauth_header, GET);
 		ci_request(&request);
 
 		str_swap(&request.response.body, &entry->cache);

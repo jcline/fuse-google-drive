@@ -26,8 +26,7 @@
 
 int ci_init(struct request_t* request, struct str_t* uri,
 		size_t header_count, const struct str_t const headers[],
-		enum request_type_e type,
-		size_t (*callback) (void *data, size_t size, size_t nmemb, void *store))
+		enum request_type_e type)
 {
 	// TODO: Errors
 	union func_u func;
@@ -110,6 +109,18 @@ void ci_clear_response(struct request_t* request)
 	memset(&request->flags, 0, sizeof(struct request_flags_t));
 }
 
+/** Curl callback to handle Google's response when listing files.
+ *
+ *  Because Google's server returns the file listing in chunks, this function
+ *  puts all those chunks together into one contiguous string.
+ *
+ *  @data  char*        the response from Google's server
+ *  @size  size_t       size of one element in data
+ *  @nmemb size_t       number of size chunks
+ *  @store struct str_t our contiguous string
+ *
+ *  @returns the size of the data read, curl expects size*nmemb or it errors
+ */
 size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store)
 {
 	struct request_t* req = (struct request_t*) store;
