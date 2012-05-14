@@ -43,16 +43,7 @@ struct gd_state {
  */
 int gd_getattr (const char *path, struct stat *statbuf)
 {
-
 	struct fuse_context *fc = fuse_get_context();
-	memset(statbuf, 0, sizeof(struct stat));
-	const char *filename = gdi_strip_path(path);
-	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
-	if(!entry)
-		return -ENOENT;
-
-	if(entry)
-		statbuf->st_size = entry->size;
 
 	if( strcmp("/", path) == 0)
 	{
@@ -61,6 +52,15 @@ int gd_getattr (const char *path, struct stat *statbuf)
 	}
 	else
 	{
+		memset(statbuf, 0, sizeof(struct stat));
+		const char *filename = gdi_strip_path(path);
+		struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
+		if(!entry)
+			return -ENOENT;
+
+		if(entry)
+			statbuf->st_size = entry->size;
+
 		statbuf->st_mode = S_IFREG | 0600;
 		statbuf->st_nlink=1;
 	}

@@ -26,6 +26,22 @@
 #include "stack.h"
 #include "functional_stack.h"
 
+/** The type of an HTTP request
+ */
+enum request_type_e {
+	POST,
+	GET,
+};
+
+struct request_flags_t {
+	int init    : 1;
+	int header  : 1;
+	int success : 1;
+
+	// If the request failed, this holds the code
+	int failure_code;
+};
+
 /** A structure containing headers and body sections of an HTTP message
  */
 struct message_t {
@@ -33,9 +49,6 @@ struct message_t {
 	struct str_t body;
 	// The headers part of an HTTP message
 	struct str_t headers;
-
-	// Any bit flags for control purposes (parsing etc)
-	int flags;
 };
 
 /** A structure for the state of an HTTP request.
@@ -56,13 +69,12 @@ struct request_t {
 
 	// Stack for cleanups
 	struct stack_t cleanup;
-};
 
-/** The type of an HTTP request
- */
-enum request_type_e {
-	POST,
-	GET,
+	// What type of request this is.
+	enum request_type_e type;
+
+	// Any bit flags for control purposes (parsing etc)
+	struct request_flags_t flags;
 };
 
 int ci_init(struct request_t* request, struct str_t* uri,
@@ -79,4 +91,7 @@ int ci_request(struct request_t* request);
 
 void ci_clear_response(struct request_t* request);
 
+size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store);
+
+void ci_reset_flags(struct request_t* request);
 #endif

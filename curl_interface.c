@@ -29,6 +29,7 @@ int ci_init(struct request_t* request, struct str_t* uri,
 		enum request_type_e type,
 		size_t (*callback) (void *data, size_t size, size_t nmemb, void *store))
 {
+	// TODO: Errors
 	union func_u func;
 	int ret = 0;
 
@@ -43,9 +44,9 @@ int ci_init(struct request_t* request, struct str_t* uri,
 	curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
 
-	//curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
+	curl_easy_setopt(handle, CURLOPT_HEADER, 1); // Enable headers, necessary?
 	// set curl_post_callback for parsing the server response
-	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, callback);
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, ci_callback_controller);
 	// set curl_post_callback's last parameter to state
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &request->response);
 
@@ -65,6 +66,7 @@ int ci_destroy(struct request_t* request)
 	curl_slist_free_all(request->headers);
 	while(request->cleanup.size)
 		fstack_pop(&request->cleanup);
+	memset(request, 0, sizeof(struct request_t));
 	return 0;
 }
 
@@ -95,6 +97,7 @@ int ci_create_header(struct request_t* request,
 
 int ci_request(struct request_t* request)
 {
+	ci_reset_flags(request);
 	return curl_easy_perform(request->handle);
 }
 
@@ -104,5 +107,36 @@ void ci_clear_response(struct request_t* request)
 	str_destroy(&request->response.headers);
 	str_init(&request->response.body);
 	str_init(&request->response.headers);
-	request->response.flags = 0;
+	memset(&request->flags, 0, sizeof(struct request_flags_t));
+}
+
+size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store)
+{
+	struct request_t* req = (struct request_t*) store;
+	struct request_flags_t* flags = &req->flags;
+
+	// Store the header portion of the reqponse
+	if(flags->header)
+	{
+		char* iter = strstr((char*) data, "\r\n");
+		if(iter == (char*)data)
+			flags->header = 0;
+		struct str_t *header = &req->response.headers;
+		str_char_concat(header, (char*) data);
+	}
+	// If we are not in the header section of the response, then
+	// we need to store the body portion.
+	else
+	{
+		struct str_t *body = &req->response.body;
+		str_char_concat(body, (char*) data);
+	}
+
+	return size*nmemb;
+}
+
+void ci_reset_flags(struct request_t* request)
+{
+	memset(&request->flags, 0, sizeof(struct request_flags_t));
+	request->flags.header=1;
 }

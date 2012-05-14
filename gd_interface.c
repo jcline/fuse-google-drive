@@ -632,7 +632,8 @@ size_t curl_get_list_callback(void *data, size_t size, size_t nmemb, void *store
  */
 struct str_t* xml_parse_file_list(struct str_t* xml, struct gdi_state *state)
 {
-	xmlDocPtr xmldoc = xmlParseMemory(xml->str, xml->len);
+	char* iter = strstr(xml->str, "<feed");
+	xmlDocPtr xmldoc = xmlParseMemory(iter, xml->len - (iter - xml->str));
 
 	xmlNodePtr node;
 
