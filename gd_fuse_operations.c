@@ -227,7 +227,8 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	if(flags & O_SYNC);
 	*/
 
-	// If we have access to this file, then load it
+	// If we have access to this file, then load it. 
+	// TODO: Make gdi_load() nonblocking if appropriate
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 	int load = gdi_load(state, entry);
