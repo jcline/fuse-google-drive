@@ -48,6 +48,9 @@ int gd_getattr (const char *path, struct stat *statbuf)
 	memset(statbuf, 0, sizeof(struct stat));
 	const char *filename = gdi_strip_path(path);
 	struct gd_fs_entry_t * entry = gd_fs_entry_find(filename);
+	if(!entry)
+		return -ENOENT;
+
 	if(entry)
 		statbuf->st_size = entry->size;
 
@@ -223,6 +226,8 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	if(flags & O_SYNC);
 
 	// If we have access to this file, then load it
+	const char* filename = gdi_strip_path(path);
+	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 	int load = gdi_load(state, entry);
 	if(load)
 		return -1;
