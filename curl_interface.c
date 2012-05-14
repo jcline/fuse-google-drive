@@ -127,11 +127,11 @@ size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store
 	struct request_flags_t* flags = &req->flags;
 
 	// Store the header portion of the reqponse
-	if(flags->header)
+	if(!flags->header)
 	{
 		char* iter = strstr((char*) data, "\r\n");
 		if(iter == (char*)data)
-			flags->header = 0;
+			flags->header = 1;
 		struct str_t *header = &req->response.headers;
 		str_char_concat(header, (char*) data);
 	}
@@ -149,5 +149,4 @@ size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store
 void ci_reset_flags(struct request_t* request)
 {
 	memset(&request->flags, 0, sizeof(struct request_flags_t));
-	request->flags.header=1;
 }
