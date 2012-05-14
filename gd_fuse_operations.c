@@ -214,6 +214,7 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 
 	// Don't need to check O_CREAT, O_EXCL, O_TRUNC
 	// Do we need to check all these?
+	/* Comment these out for now to reduce user headacke
 	if(flags & O_APPEND);
 	if(flags & O_ASYNC);
 	//if(flags & O_DIRECT);
@@ -224,6 +225,7 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	if(flags & O_NOFOLLOW);
 	if(flags & O_NONBLOCK || flags & O_NONBLOCK); // read man 2 fcntl and man 7 fifo
 	if(flags & O_SYNC);
+	*/
 
 	// If we have access to this file, then load it
 	const char* filename = gdi_strip_path(path);
