@@ -250,7 +250,6 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 		return 0;
 	size_t length = size;
 	const char const* chunk = gdi_read(&length, entry, offset);
-	//printf("%s\n", chunk);
 	memcpy(buf, chunk, length);
 	return length;
 }
