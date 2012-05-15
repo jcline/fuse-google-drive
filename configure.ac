@@ -12,22 +12,23 @@ AC_CONFIG_SRCDIR([.])
 AC_PROG_CC
 
 # Checks for libraries.
-AC_CHECK_LIB([fuse], [fuse_main],
-	     [
-	      FUSE_LIBS=`pkg-config fuse --libs`
-	      FUSE_CFLAGS=`pkg-config fuse --cflags`
-	      AC_SUBST([FUSE_LIBS])
-	      AC_SUBST([FUSE_CFLAGS])
-	     ],
-	     [AC_MSG_ERROR([FUSE library is missing])],
-	     )
+#AC_CHECK_LIB([fuse], [fuse_main],
+#	     [
+#	      FUSE_LIBS=`pkg-config fuse --libs`
+#	      FUSE_CFLAGS=`pkg-config fuse --cflags`
+#	      AC_SUBST([FUSE_LIBS])
+#	      AC_SUBST([FUSE_CFLAGS])
+#	     ],
+#	     [AC_MSG_ERROR([FUSE library is missing])],
+#	     )
+PKG_CHECK_MODULES([fuse], [fuse])
 PKG_CHECK_MODULES([curl], [libcurl])
 PKG_CHECK_MODULES([json], [json])
 PKG_CHECK_MODULES([xml], [libxml-2.0])
 
 # Checks for header files.
-CFLAGS="$CFLAGS $FUSE_CFLAGS"
-AC_CHECK_HEADER([fuse.h],,[AC_MSG_ERROR([<fuse.h> header not found])], [AC_INCLUDES_DEFAULT])
+#CFLAGS="$CFLAGS $FUSE_CFLAGS"
+#AC_CHECK_HEADER([fuse.h],,[AC_MSG_ERROR([<fuse.h> header not found])], [AC_INCLUDES_DEFAULT])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
