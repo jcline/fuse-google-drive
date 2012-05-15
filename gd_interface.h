@@ -19,6 +19,8 @@
 #ifndef _GOOGLE_DRIVE_INTERFACE_H
 #define _GOOGLE_DRIVE_INTERFACE_H
 
+#define FUSE_USE_VERSION 26
+
 #include <curl/curl.h>
 #include <curl/multi.h>
 #include <fuse.h>
