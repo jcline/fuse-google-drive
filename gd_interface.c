@@ -740,12 +740,31 @@ const char* gdi_strip_path(const char* path)
 	return filename;
 }
 
+int gdi_check_update(struct gdi_state* state, struct gd_fs_entry_t* entry)
+{
+	int ret = 0;
+
+	return ret;
+}
+
 int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 {
 	int ret = 0;
-	if(entry->cached && !0 /*check for update here*/)
+	if(entry->cached)
 	{
-		return ret;
+		int updated = gdi_check_update(state, entry);
+		switch(updated)
+		{
+			case -1:
+				ret = 1;
+				break;
+			case 0:
+				ret = 0;
+				break;
+			case 1:
+				//update
+				break;
+		}
 	}
 	else
 	{
