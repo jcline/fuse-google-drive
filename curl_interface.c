@@ -62,9 +62,9 @@ int ci_init(struct request_t* request, struct str_t* uri,
 
 int ci_destroy(struct request_t* request)
 {
-	curl_slist_free_all(request->headers);
 	while(request->cleanup.size)
 		fstack_pop(&request->cleanup);
+	fstack_destroy(&request->cleanup);
 	memset(request, 0, sizeof(struct request_t));
 	return 0;
 }

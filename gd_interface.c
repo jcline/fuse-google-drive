@@ -215,6 +215,7 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 {
 	struct gdi_state *state = (struct gdi_state*) store;
 	struct json_object *json = json_tokener_parse(data);
+	union func_u func;
 
 	struct json_object *tmp = json_object_object_get(json, "error");
 	if(tmp != NULL)
@@ -226,27 +227,31 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 
 	tmp = json_object_object_get(json, "access_token");
 	const char* val = json_object_get_string(tmp);
-	size_t length = strlen(val);
-	state->access_token = (char*) malloc(sizeof(char)*length);
-	strcpy(state->access_token, val);
-	
+
+	str_init_create(&state->access_token, val);
+	func.func1 = str_destroy;
+	fstack_push(state->stack, &state->access_token, &func, 1);
+
 	tmp = json_object_object_get(json, "token_type");
 	val = json_object_get_string(tmp);
-	length = strlen(val);
-	state->token_type = (char*) malloc(sizeof(char)*length);
-	strcpy(state->token_type, val);
+
+	str_init_create(&state->token_type, val);
+	func.func1 = str_destroy;
+	fstack_push(state->stack, &state->token_type, &func, 1);
 
 	tmp = json_object_object_get(json, "refresh_token");
 	val = json_object_get_string(tmp);
-	length = strlen(val);
-	state->refresh_token = (char*) malloc(sizeof(char)*length);
-	strcpy(state->refresh_token, val);
+
+	str_init_create(&state->refresh_token, val);
+	func.func1 = free;
+	fstack_push(state->stack, &state->refresh_token, &func, 1);
 
 	tmp = json_object_object_get(json, "id_token");
 	val = json_object_get_string(tmp);
-	length = strlen(val);
-	state->id_token = (char*) malloc(sizeof(char)*length);
-	strcpy(state->id_token, val);
+
+	str_init_create(&state->id_token, val);
+	func.func1 = free;
+	fstack_push(state->stack, &state->id_token, &func, 1);
 
 	tmp = json_object_object_get(json, "expires_in");
 	state->token_expiration = json_object_get_int(tmp);
@@ -361,6 +366,7 @@ int gdi_init(struct gdi_state* state)
 	if(fstack_init(gstack, 20))
 		return 1;
 
+	state->stack = estack;
 	state->head = NULL;
 	state->tail = NULL;
 	state->callback_error = 0;
@@ -475,7 +481,7 @@ int gdi_init(struct gdi_state* state)
 	size_t length = 45;
 	size_t i = 0;
 	size_t done = 0;
-	state->code = (char *) malloc(sizeof(char)*length);
+	state->code = (char *) malloc(sizeof(char)*(length+1));
 	if(state->code == NULL)
 		goto init_fail;
 	func.func1 = free;
@@ -559,22 +565,38 @@ init_fail:
 	while(gstack->size)
 		fstack_pop(gstack);
 	fstack_destroy(estack);
+	free(estack);
 	fstack_destroy(gstack);
+	free(gstack);
 	return 1;
 
 init_success:
-	state->stack = estack;
 	while(gstack->size)
 		fstack_pop(gstack);
 	fstack_destroy(gstack);
+	free(gstack);
 	return 0;
 }
 
 void gdi_destroy(struct gdi_state* state)
 {
+	printf("Cleaning up...\n");
+	fflush(stdout);
+
+	struct gd_fs_entry_t *iter = state->head;
+	struct gd_fs_entry_t *tmp = iter;
+	while(iter != NULL)
+	{
+		gd_fs_entry_destroy(iter);
+		iter = iter->next;
+		free(tmp);
+		tmp = iter;
+	}
+
 	while(state->stack->size)
 		fstack_pop(state->stack);
 	fstack_destroy(state->stack);
+	free(state->stack);
 }
 
 size_t remove_newlines(char *str, size_t length)
@@ -682,14 +704,11 @@ void gdi_get_file_list(struct gdi_state *state)
 
 	struct str_t oauth;
 	struct str_t oauth_header;
-	// TODO: Remove when we switch to str_t for cache struct
-	struct str_t token;
-	str_init_create(&token, state->access_token);
 
 	str_init(&oauth_header);
 	str_init_create(&oauth, "Authorization: OAuth ");
 
-	struct str_t* concat[] = {&oauth, &token};
+	struct str_t* concat[] = {&oauth, &state->access_token};
 	str_concat(&oauth_header, 2, concat);
 
 	struct request_t request;
@@ -732,16 +751,11 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	{
 		struct str_t oauth;
 		struct str_t oauth_header;
-		// TODO: Remove when we switch to str_t for cache struct
-		struct str_t token;
-		str_init_create(&token, state->access_token);
 
 		str_init(&oauth_header);
 		str_init_create(&oauth, "Authorization: OAuth ");
 
-		struct str_t* concat[2];
-		concat[0] = &oauth;
-		concat[1] = &token;
+		struct str_t* concat[2] = {&oauth, &state->access_token};
 
 		str_concat(&oauth_header, 2, concat);
 
@@ -753,7 +767,6 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 
 		ci_destroy(&request);
 		str_destroy(&oauth_header);
-		str_destroy(&token);
 		entry->cached = 1;
 	}
 

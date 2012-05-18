@@ -20,12 +20,16 @@
 #define _STACK_H
 #include <stdlib.h>
 
+struct stack_entry_t {
+	void* item;
+};
+
 struct stack_t {
 	size_t reserved;
 	size_t size;
 
 	void **top;
-	void *store;
+	void **store;
 };
 
 int stack_init(struct stack_t *stack, size_t size);

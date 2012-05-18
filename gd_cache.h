@@ -60,6 +60,8 @@ struct gd_fs_lock_t {
 	pthread_rwlock_t *lock;
 };
 
+void gd_fs_entry_destroy(struct gd_fs_entry_t* entry);
+
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node);
 struct gd_fs_entry_t* gd_fs_entry_find(const char* key);
 

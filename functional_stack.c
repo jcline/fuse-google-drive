@@ -30,7 +30,7 @@ int fstack_init(struct stack_t *stack, size_t size)
 void fstack_destroy(struct stack_t *stack)
 {
 	while(stack->size)
-		stack_pop(stack);
+		free(stack_pop(stack));
 	stack_destroy(stack);
 }
 
@@ -38,7 +38,7 @@ void *fstack_pop(struct stack_t *stack)
 {
 	struct fstack_item_t *item;
 	item = (struct fstack_item_t*) stack_pop(stack);
-	if(item)
+	if(!item)
 		return NULL;
 
 	switch(item->order)

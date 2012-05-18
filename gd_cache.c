@@ -146,6 +146,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				{
 					value = xmlGetProp(c1, "src");
 					str_init_create(&entry->src, value);
+					xmlFree(value);
 				}
 				break;
 			case 'l':
@@ -193,6 +194,18 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	}
 
 	return entry;
+}
+
+void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
+{
+	str_destroy(&entry->author);
+	str_destroy(&entry->author_email);
+	str_destroy(&entry->lastModifiedBy);
+	str_destroy(&entry->lastModifiedBy_email);
+	str_destroy(&entry->filename);
+	str_destroy(&entry->src);
+	str_destroy(&entry->cache);
+	str_destroy(&entry->md5);
 }
 
 /** Searches hash table for a filename.

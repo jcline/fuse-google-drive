@@ -40,11 +40,11 @@ struct gdi_state {
 	// So we can identify files owned by this user
 	char *email;
 
-	char *access_token;
-	char *id_token;
-	char *refresh_token;
+	struct str_t access_token;
+	struct str_t id_token;
+	struct str_t refresh_token;
 	long token_expiration;
-	char *token_type;
+	struct str_t token_type;
 
 	struct gd_fs_entry_t *head;
 	struct gd_fs_entry_t *tail;
