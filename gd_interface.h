@@ -53,6 +53,8 @@ struct gdi_state {
 	struct stack_t *stack;
 
 	int callback_error;
+
+	struct str_t oauth_header;
 };
 
 char* urlencode (const char *url, size_t* length);
