@@ -142,6 +142,30 @@ char* urlencode (const char *url, size_t *length)
 	return result;
 }
 
+int create_oauth_header(struct gdi_state* state)
+{
+	union func_u func;
+	int ret = 0;
+	struct str_t oauth;
+	struct str_t oauth_header;
+
+	str_init(&oauth_header);
+	str_init_create(&oauth, "Authorization: OAuth ");
+
+	struct str_t* concat[2] = {&oauth, &state->access_token};
+
+	str_init(&state->oauth_header);
+	func.func3 = str_destroy;
+	fstack_push(state->stack, &state->oauth_header, &func, 3);
+
+	ret = str_concat(&state->oauth_header, 2, concat);
+	if(ret)
+		fstack_pop(state->stack);
+
+	str_destroy(&oauth);
+	str_destroy(&oauth_header);
+	return ret;
+}
 
 int gdi_get_credentials()
 {
@@ -547,6 +571,7 @@ int gdi_init(struct gdi_state* state)
 	if(state->callback_error)
 		goto init_fail;
 
+	create_oauth_header(state);
 	gdi_get_file_list(state);
 	if(create_hash_table(state->num_files*4, state->head))
 	{
@@ -702,17 +727,8 @@ void gdi_get_file_list(struct gdi_state *state)
 
 	struct str_t* next = NULL;
 
-	struct str_t oauth;
-	struct str_t oauth_header;
-
-	str_init(&oauth_header);
-	str_init_create(&oauth, "Authorization: OAuth ");
-
-	struct str_t* concat[] = {&oauth, &state->access_token};
-	str_concat(&oauth_header, 2, concat);
-
 	struct request_t request;
-	ci_init(&request, &uri, 1, &oauth_header, GET);
+	ci_init(&request, &uri, 1, &state->oauth_header, GET);
 	do
 	{
 
@@ -729,8 +745,6 @@ void gdi_get_file_list(struct gdi_state *state)
 
 	ci_destroy(&request);
 	str_destroy(&uri);
-	str_destroy(&oauth);
-	str_destroy(&oauth_header);
 }
 
 const char* gdi_strip_path(const char* path)
@@ -749,24 +763,13 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	}
 	else
 	{
-		struct str_t oauth;
-		struct str_t oauth_header;
-
-		str_init(&oauth_header);
-		str_init_create(&oauth, "Authorization: OAuth ");
-
-		struct str_t* concat[2] = {&oauth, &state->access_token};
-
-		str_concat(&oauth_header, 2, concat);
-
 		struct request_t request;
-		ci_init(&request, &entry->src, 1, &oauth_header, GET);
+		ci_init(&request, &entry->src, 1, &state->oauth_header, GET);
 		ci_request(&request);
 
 		str_swap(&request.response.body, &entry->cache);
 
 		ci_destroy(&request);
-		str_destroy(&oauth_header);
 		entry->cached = 1;
 	}
 
