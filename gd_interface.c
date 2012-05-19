@@ -758,7 +758,14 @@ int gdi_check_update(struct gdi_state* state, struct gd_fs_entry_t* entry)
 {
 	int ret = 0;
 
-
+	if(entry->md5set)
+	{
+		struct request_t request;
+		ci_init(&request, &entry->feed, 1, &state->oauth_header, GET);
+		ci_request(&request);
+		printf("%s\n\n%s\n", request.response.headers.str, request.response.body.str);
+		ci_destroy(&request);
+	}
 
 	return ret;
 }
