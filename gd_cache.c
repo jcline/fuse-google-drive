@@ -212,7 +212,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					/*
 					else if(strcmp(value, "edit-media") == 0)
 					{
-						// deprecated, use 'resumeable'
+						// deprecated, use 'resumeable-edit-media'
 					}
 					*/
 					else if(strcmp(value, "http://schemas.google.com/g/2005#resumable-edit-media") == 0)
