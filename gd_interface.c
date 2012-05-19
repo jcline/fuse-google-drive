@@ -763,7 +763,13 @@ int gdi_check_update(struct gdi_state* state, struct gd_fs_entry_t* entry)
 		struct request_t request;
 		ci_init(&request, &entry->feed, 1, &state->oauth_header, GET);
 		ci_request(&request);
-		printf("%s\n\n%s\n", request.response.headers.str, request.response.body.str);
+
+		struct str_t* md5 = xml_get_md5sum(&request.response.body);
+		if(md5 == NULL)
+			ret = -1;
+		if(!ret && strcmp(md5->str, entry->md5.str))
+			ret = 1;
+
 		ci_destroy(&request);
 	}
 
@@ -785,7 +791,13 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 				ret = 0;
 				break;
 			case 1:
-				//update
+				struct request_t request;
+				ci_init(&request, &entry->src, 1, &state->oauth_header, GET);
+				ci_request(&request);
+
+				str_swap(&request.response.body, &entry->cache);
+
+				ci_destroy(&request);
 				break;
 		}
 	}
