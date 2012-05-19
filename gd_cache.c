@@ -177,6 +177,41 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				}
 				else if(strcmp(name, "link") == 0)
 				{
+					value = xmlGetProp(c1, "rel");
+					if(strcmp(value, "http://schemas.google.com/docs/2007#parent") == 0)
+					{
+						// This entry is inside one (or more?) collections
+						// These entries are the folders for this entry
+					}
+					else if(strcmp(value, "alternate") == 0)
+					{
+						// Link you can open this document in a web browser with
+						// Do we care?
+					}
+					else if(strcmp(value, "self") == 0)
+					{
+						// Link to XML feed for just this entry
+						// Might be useful for checking for updates instead of changesets
+					}
+					else if(strcmp(value, "edit") == 0)
+					{
+						// For writes?
+					}
+					/*
+					else if(strcmp(value, "edit-media") == 0)
+					{
+						// deprecated, use 'resumeable'
+					}
+					*/
+					else if(strcmp(value, "http://schemas.google.com/g/2005#resumable-edit-media") == 0)
+					{
+						// For resumeable writes?
+						// This may be the one we *really* want to use, rather than 'edit'
+					}
+					else if(strcmp(value, "http://schemas.google.com/docs/2007/thumbnail") == 0)
+					{
+						// Might be a useful way to expose this for GUI file managers?
+					}
 				}
 				break;
 			case 'm':
