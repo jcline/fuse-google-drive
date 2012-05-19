@@ -66,6 +66,8 @@ void gd_fs_entry_destroy(struct gd_fs_entry_t* entry);
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node);
 struct gd_fs_entry_t* gd_fs_entry_find(const char* key);
 
+struct str_t* xml_get_md5sum(const struct str_t* xml);
+
 int create_hash_table(size_t size, const struct gd_fs_entry_t* head);
 void destroy_hash_table();
 
