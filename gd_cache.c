@@ -119,7 +119,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 
 	for(c1 = node->children; c1 != NULL; c1 = c1->next)
 	{
-		char *name = c1->name;
+		char const *name = c1->name;
 		switch(*name)
 		{
 			case 'a': // 'author'
@@ -149,6 +149,23 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					xmlFree(value);
 				}
 				break;
+			case 'f':
+				if(strcmp(name, "feedlink") == 0)
+				{
+					value = xmlGetProp(c1, "rel");
+					if(strcmp(value, "http://schemas.google.com/acl/2007#accessControlList") == 0)
+					{
+						// Link for r/w access to ACLS for this entry
+						// Do we care?
+						// Can we expose this?
+					}
+					else if(strcmp(value, "http://schemas.google.com/docs/2007/revisions") == 0)
+					{
+						// Link for r/w access to revisions
+						// It would be cool if we can expose these somehow
+					}
+				}
+				break;
 			case 'l':
 				if(strcmp(name, "lastModifiedBy") == 0)
 				{
@@ -170,13 +187,67 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 						xmlFree(value);
 					}
 				}
+				else if(strcmp(name, "link") == 0)
+				{
+					value = xmlGetProp(c1, "rel");
+					if(strcmp(value, "http://schemas.google.com/docs/2007#parent") == 0)
+					{
+						// This entry is inside one (or more?) collections
+						// These entries are the folders for this entry
+					}
+					else if(strcmp(value, "alternate") == 0)
+					{
+						// Link you can open this document in a web browser with
+						// Do we care?
+					}
+					else if(strcmp(value, "self") == 0)
+					{
+						// Link to XML feed for just this entry
+						// Might be useful for checking for updates instead of changesets
+						xmlChar *href = xmlGetProp(c1, "href");
+						str_init_create(&entry->feed, href);
+						xmlFree(href);
+					}
+					else if(strcmp(value, "edit") == 0)
+					{
+						// For writes?
+					}
+					/*
+					else if(strcmp(value, "edit-media") == 0)
+					{
+						// deprecated, use 'resumeable-edit-media'
+					}
+					*/
+					else if(strcmp(value, "http://schemas.google.com/g/2005#resumable-edit-media") == 0)
+					{
+						// For resumeable writes?
+						// This may be the one we *really* want to use, rather than 'edit'
+					}
+					else if(strcmp(value, "http://schemas.google.com/docs/2007/thumbnail") == 0)
+					{
+						// Might be a useful way to expose this for GUI file managers?
+					}
+					xmlFree(value);
+				}
+				break;
+			case 'm':
+				if(strcmp(name, "md5Checksum") == 0)
+				{
+					value = xmlNodeListGetString(xml, c1->children, 1);
+					entry->md5set = 1;
+					str_init_create(&entry->md5, value);
+					xmlFree(value);
+				}
 				break;
 			case 't': // 'title'
-				value = xmlNodeListGetString(xml, c1->children, 1);
-				str_init_create(&entry->filename, value);
-				entry->filename.str = filenameencode(value, &entry->filename.len);
-				entry->filename.reserved = entry->filename.len;
-				xmlFree(value);
+				if(strcmp(name, "title") == 0)
+				{
+					value = xmlNodeListGetString(xml, c1->children, 1);
+					str_init_create(&entry->filename, value);
+					entry->filename.str = filenameencode(value, &entry->filename.len);
+					entry->filename.reserved = entry->filename.len;
+					xmlFree(value);
+				}
 				break;
 			case 's':
 				if(strcmp(name, "size") == 0)
@@ -196,6 +267,45 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	return entry;
 }
 
+struct str_t* xml_get_md5sum(const struct str_t* xml)
+{
+	size_t length;
+	xmlNodePtr c1;
+	xmlChar *value = NULL;
+	struct str_t* ret = NULL;
+
+	const char* iter = strstr(xml->str, "<entry");
+	xmlDocPtr xmldoc = xmlParseMemory(iter, xml->len - (iter - xml->str));
+
+	xmlNodePtr node;
+
+	if(xmldoc == NULL || xmldoc->children == NULL || xmldoc->children->children == NULL)
+		return NULL;
+	for(node = xmldoc->children->children; node != NULL; node = node->next)
+	{
+		char const *name = node->name;
+		switch(*name)
+		{
+			case 'm':
+				if(strcmp(name, "md5Checksum") == 0)
+				{
+					ret = (struct str_t*) malloc(sizeof(struct str_t));
+					if(!ret)
+						break;
+
+					value = xmlNodeListGetString(xmldoc, node->children, 1);
+					str_init_create(ret, value);
+					xmlFree(value);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	return ret;
+}
+
 void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 {
 	str_destroy(&entry->author);
@@ -204,6 +314,7 @@ void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 	str_destroy(&entry->lastModifiedBy_email);
 	str_destroy(&entry->filename);
 	str_destroy(&entry->src);
+	str_destroy(&entry->feed);
 	str_destroy(&entry->cache);
 	str_destroy(&entry->md5);
 }
@@ -222,7 +333,7 @@ struct gd_fs_entry_t* gd_fs_entry_find(const char* key)
 	ENTRY* entry = hsearch(keyentry, FIND);
 	if(entry == NULL)
 		return NULL;
-	return (struct gd_fs_entry*) entry->data;
+	return (struct gd_fs_entry_t*) entry->data;
 }
 
 /** Creates the hash table for speeding up file finding.

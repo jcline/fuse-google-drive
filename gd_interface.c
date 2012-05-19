@@ -754,12 +754,52 @@ const char* gdi_strip_path(const char* path)
 	return filename;
 }
 
+int gdi_check_update(struct gdi_state* state, struct gd_fs_entry_t* entry)
+{
+	int ret = 0;
+
+	if(entry->md5set)
+	{
+		struct request_t request;
+		ci_init(&request, &entry->feed, 1, &state->oauth_header, GET);
+		ci_request(&request);
+
+		struct str_t* md5 = xml_get_md5sum(&request.response.body);
+		if(md5 == NULL)
+			ret = -1;
+		if(!ret && strcmp(md5->str, entry->md5.str))
+			ret = 1;
+
+		ci_destroy(&request);
+	}
+
+	return ret;
+}
+
 int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 {
 	int ret = 0;
-	if(entry->cached && !0 /*check for update here*/)
+	if(entry->cached)
 	{
-		return ret;
+		int updated = gdi_check_update(state, entry);
+		struct request_t request;
+		switch(updated)
+		{
+			case -1:
+				ret = 1;
+				break;
+			case 0:
+				ret = 0;
+				break;
+			case 1:
+				ci_init(&request, &entry->src, 1, &state->oauth_header, GET);
+				ci_request(&request);
+
+				str_swap(&request.response.body, &entry->cache);
+
+				ci_destroy(&request);
+				break;
+		}
 	}
 	else
 	{

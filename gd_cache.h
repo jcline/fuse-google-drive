@@ -36,13 +36,14 @@ struct gd_fs_entry_t {
 	struct str_t filename; // 'title' in the XML from directory-list
 	struct str_t resourceID;
 	struct str_t src; // The url for downloading the file
+	struct str_t feed; // The url for getting the XML feed for this entry
 
 	struct str_t cache;
 	int cached;
 
 	unsigned long size; // file size in bytes, 'gd:quotaBytesUsed' in XML
-	struct str_t md5; // 'docs:md5Checksum' in XML, might be useful later
-
+	struct str_t md5; // 'docs:md5Checksum' in XML
+	int md5set; // indicates if the md5sum was available for this entry
 
 	// Add some data we can use in getattr()
 
@@ -64,6 +65,8 @@ void gd_fs_entry_destroy(struct gd_fs_entry_t* entry);
 
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node);
 struct gd_fs_entry_t* gd_fs_entry_find(const char* key);
+
+struct str_t* xml_get_md5sum(const struct str_t* xml);
 
 int create_hash_table(size_t size, const struct gd_fs_entry_t* head);
 void destroy_hash_table();
