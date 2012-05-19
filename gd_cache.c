@@ -267,6 +267,45 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	return entry;
 }
 
+struct str_t* xml_get_md5sum(const struct str_t* xml)
+{
+	size_t length;
+	xmlNodePtr c1;
+	xmlChar *value = NULL;
+	struct str_t* ret = NULL;
+
+	const char* iter = strstr(xml->str, "<entry");
+	xmlDocPtr xmldoc = xmlParseMemory(iter, xml->len - (iter - xml->str));
+
+	xmlNodePtr node;
+
+	if(xmldoc == NULL || xmldoc->children == NULL || xmldoc->children->children == NULL)
+		return NULL;
+	for(node = xmldoc->children; node != NULL; node = node->next)
+	{
+		char const *name = node->name;
+		switch(*name)
+		{
+			case 'm':
+				if(strcmp(name, "md5Checksum") == 0)
+				{
+					ret = (struct str_t*) malloc(sizeof(struct str_t));
+					if(!ret)
+						break;
+
+					value = xmlNodeListGetString(xmldoc, node->children, 1);
+					str_init_create(ret, value);
+					xmlFree(value);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	return ret;
+}
+
 void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 {
 	str_destroy(&entry->author);
