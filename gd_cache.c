@@ -204,6 +204,9 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					{
 						// Link to XML feed for just this entry
 						// Might be useful for checking for updates instead of changesets
+						xmlChar *href = xmlGetProp(c1, "href");
+						str_init_create(&entry->feed, href);
+						xmlFree(href);
 					}
 					else if(strcmp(value, "edit") == 0)
 					{
@@ -224,6 +227,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					{
 						// Might be a useful way to expose this for GUI file managers?
 					}
+					xmlFree(value);
 				}
 				break;
 			case 'm':
