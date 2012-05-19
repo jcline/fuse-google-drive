@@ -152,6 +152,18 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 			case 'f':
 				if(strcmp(name, "feedlink") == 0)
 				{
+					value = xmlGetProp(c1, "rel");
+					if(strcmp(value, "http://schemas.google.com/acl/2007#accessControlList") == 0)
+					{
+						// Link for r/w access to ACLS for this entry
+						// Do we care?
+						// Can we expose this?
+					}
+					else if(strcmp(value, "http://schemas.google.com/docs/2007/revisions") == 0)
+					{
+						// Link for r/w access to revisions
+						// It would be cool if we can expose these somehow
+					}
 				}
 				break;
 			case 'l':
