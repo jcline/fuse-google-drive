@@ -242,7 +242,7 @@ struct gd_fs_entry_t* gd_fs_entry_find(const char* key)
 	ENTRY* entry = hsearch(keyentry, FIND);
 	if(entry == NULL)
 		return NULL;
-	return (struct gd_fs_entry*) entry->data;
+	return (struct gd_fs_entry_t*) entry->data;
 }
 
 /** Creates the hash table for speeding up file finding.
