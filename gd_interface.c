@@ -782,6 +782,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	if(entry->cached)
 	{
 		int updated = gdi_check_update(state, entry);
+		struct request_t request;
 		switch(updated)
 		{
 			case -1:
@@ -791,7 +792,6 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 				ret = 0;
 				break;
 			case 1:
-				struct request_t request;
 				ci_init(&request, &entry->src, 1, &state->oauth_header, GET);
 				ci_request(&request);
 

@@ -281,7 +281,7 @@ struct str_t* xml_get_md5sum(const struct str_t* xml)
 
 	if(xmldoc == NULL || xmldoc->children == NULL || xmldoc->children->children == NULL)
 		return NULL;
-	for(node = xmldoc->children; node != NULL; node = node->next)
+	for(node = xmldoc->children->children; node != NULL; node = node->next)
 	{
 		char const *name = node->name;
 		switch(*name)
