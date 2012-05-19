@@ -41,8 +41,8 @@ struct gd_fs_entry_t {
 	int cached;
 
 	unsigned long size; // file size in bytes, 'gd:quotaBytesUsed' in XML
-	struct str_t md5; // 'docs:md5Checksum' in XML, might be useful later
-
+	struct str_t md5; // 'docs:md5Checksum' in XML
+	int md5set; // indicates if the md5sum was available for this entry
 
 	// Add some data we can use in getattr()
 

@@ -758,6 +758,8 @@ int gdi_check_update(struct gdi_state* state, struct gd_fs_entry_t* entry)
 {
 	int ret = 0;
 
+
+
 	return ret;
 }
 

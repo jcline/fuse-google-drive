@@ -119,7 +119,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 
 	for(c1 = node->children; c1 != NULL; c1 = c1->next)
 	{
-		char *name = c1->name;
+		char const *name = c1->name;
 		switch(*name)
 		{
 			case 'a': // 'author'
@@ -149,6 +149,11 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					xmlFree(value);
 				}
 				break;
+			case 'f':
+				if(strcmp(name, "feedlink") == 0)
+				{
+				}
+				break;
 			case 'l':
 				if(strcmp(name, "lastModifiedBy") == 0)
 				{
@@ -170,13 +175,28 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 						xmlFree(value);
 					}
 				}
+				else if(strcmp(name, "link") == 0)
+				{
+				}
+				break;
+			case 'm':
+				if(strcmp(name, "md5Checksum") == 0)
+				{
+					value = xmlNodeListGetString(xml, c1->children, 1);
+					entry->md5set = 1;
+					str_init_create(&entry->md5, value);
+					xmlFree(value);
+				}
 				break;
 			case 't': // 'title'
-				value = xmlNodeListGetString(xml, c1->children, 1);
-				str_init_create(&entry->filename, value);
-				entry->filename.str = filenameencode(value, &entry->filename.len);
-				entry->filename.reserved = entry->filename.len;
-				xmlFree(value);
+				if(strcmp(name, "title") == 0)
+				{
+					value = xmlNodeListGetString(xml, c1->children, 1);
+					str_init_create(&entry->filename, value);
+					entry->filename.str = filenameencode(value, &entry->filename.len);
+					entry->filename.reserved = entry->filename.len;
+					xmlFree(value);
+				}
 				break;
 			case 's':
 				if(strcmp(name, "size") == 0)
