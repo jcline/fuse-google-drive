@@ -275,6 +275,7 @@ void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 	str_destroy(&entry->lastModifiedBy_email);
 	str_destroy(&entry->filename);
 	str_destroy(&entry->src);
+	str_destroy(&entry->feed);
 	str_destroy(&entry->cache);
 	str_destroy(&entry->md5);
 }
