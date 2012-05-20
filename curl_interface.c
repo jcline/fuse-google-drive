@@ -160,7 +160,7 @@ void ci_clear_response(struct request_t* request)
  *  @data  char*             the response from Google's server
  *  @size  size_t            size of one element in data
  *  @nmemb size_t            number of size chunks
- *  @store struct request_t* our contiguous string
+ *  @store struct request_t* the request this callback is for
  *
  *  @returns the size of the data read, curl expects size*nmemb or it errors
  */
