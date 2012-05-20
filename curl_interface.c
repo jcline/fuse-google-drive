@@ -155,7 +155,11 @@ void ci_clear_response(struct request_t* request)
 /** Curl callback to handle Google's response when listing files.
  *
  *  Because Google's server returns the file listing in chunks, this function
- *  puts all those chunks together into one contiguous string.
+ *  puts all those chunks together into one contiguous string for each section,
+ *  the header and the body.
+ *
+ *  It should be noted that this function is called for every line in the
+ *  header of the response. This is why the CRLF scanning works the way it does.
  *
  *  @data  char*             the response from Google's server
  *  @size  size_t            size of one element in data
@@ -172,7 +176,9 @@ size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store
 	// Store the header portion of the reqponse
 	if(!flags->header)
 	{
+		// Find the first occurrence of CRLF in this line of header
 		char* iter = strstr((char*) data, "\r\n");
+		// If the header only contains CRLF, the header is over after this call
 		if(iter == (char*)data)
 			flags->header = 1;
 		struct str_t *header = &req->response.headers;
