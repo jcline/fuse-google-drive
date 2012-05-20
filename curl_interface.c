@@ -24,6 +24,18 @@
 
 #include <string.h>
 
+/** Initialize a request.
+ *
+ *  This handles setting up a request for curl. It is preferable to call this
+ *  once for multiple requests to help curl reuse connections when possible.
+ *  Use the other set and reset methods to change things for multiple requests.
+ *
+ *  @request      struct request_t* the request_t to initialize
+ *  @uri          struct str_t*     the uri for the initial request
+ *  @header_count size_t            the number of elements in headers[]
+ *  @headers      struct str_t[]    the headers, if any, for this request
+ *  @type         enum request_type the type of the request, GET, POST, ...
+ */
 int ci_init(struct request_t* request, struct str_t* uri,
 		size_t header_count, const struct str_t const headers[],
 		enum request_type_e type)
@@ -60,6 +72,10 @@ int ci_init(struct request_t* request, struct str_t* uri,
 	return ret;
 }
 
+/** Cleanup a request.
+ *
+ * @request struct request_t* the request to uninitialize
+ */
 int ci_destroy(struct request_t* request)
 {
 	while(request->cleanup.size)
@@ -69,11 +85,25 @@ int ci_destroy(struct request_t* request)
 	return 0;
 }
 
+/** Set the URI for a request.
+ *
+ *  @request struct request_t* the request to set
+ *  @uri     struct str_t*     the str_t containing the uri to set
+ */
 int ci_set_uri(struct request_t* request, struct str_t* uri)
 {
 	return curl_easy_setopt(request->handle, CURLOPT_URL, uri->str); // set URI
 }
 
+/** Create the header for a request from an array of str_ts.
+ *
+ *  Takes an array of str_ts and creates a header from them.
+ *  This has currently only been tested for header_count = 2.
+ *
+ *  @request      struct request_t* the request we want to set headers for.
+ *  @header_count size_t            the number of headers in headers[]
+ *  @headers      struct str_t[]    the strings for the headers.
+ */
 int ci_create_header(struct request_t* request,
 		size_t header_count, const struct str_t headers[])
 {
@@ -94,18 +124,31 @@ int ci_create_header(struct request_t* request,
 	return 0;
 }
 
+/** Make a request.
+ *
+ *  @request struct request_t* the initialized request_t for making this request
+ */
 int ci_request(struct request_t* request)
 {
 	ci_reset_flags(request);
 	return curl_easy_perform(request->handle);
 }
 
+/** Reset the request.response data.
+ *
+ *  We want to do this in order to safely reuse a request_t.
+ *
+ *  @request struct request_t* the request containing the response to reset.
+ */
 void ci_clear_response(struct request_t* request)
 {
+	// First, clear the data
 	str_destroy(&request->response.body);
 	str_destroy(&request->response.headers);
+	// Then reinitialize the variables for further use
 	str_init(&request->response.body);
 	str_init(&request->response.headers);
+	// Reset the flags
 	memset(&request->flags, 0, sizeof(struct request_flags_t));
 }
 
@@ -114,10 +157,10 @@ void ci_clear_response(struct request_t* request)
  *  Because Google's server returns the file listing in chunks, this function
  *  puts all those chunks together into one contiguous string.
  *
- *  @data  char*        the response from Google's server
- *  @size  size_t       size of one element in data
- *  @nmemb size_t       number of size chunks
- *  @store struct str_t our contiguous string
+ *  @data  char*             the response from Google's server
+ *  @size  size_t            size of one element in data
+ *  @nmemb size_t            number of size chunks
+ *  @store struct request_t* our contiguous string
  *
  *  @returns the size of the data read, curl expects size*nmemb or it errors
  */
@@ -146,6 +189,10 @@ size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store
 	return size*nmemb;
 }
 
+/** Resets the flags for a request.
+ *
+ *  @request struct request_t* the request we wish to reset
+ */
 void ci_reset_flags(struct request_t* request)
 {
 	memset(&request->flags, 0, sizeof(struct request_flags_t));
