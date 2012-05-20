@@ -133,14 +133,14 @@ size_t ci_callback_controller(void *data, size_t size, size_t nmemb, void *store
 		if(iter == (char*)data)
 			flags->header = 1;
 		struct str_t *header = &req->response.headers;
-		str_char_concat(header, (char*) data);
+		str_char_concat(header, (char*) data, size*nmemb);
 	}
 	// If we are not in the header section of the response, then
 	// we need to store the body portion.
 	else
 	{
 		struct str_t *body = &req->response.body;
-		str_char_concat(body, (char*) data);
+		str_char_concat(body, (char*) data, size*nmemb);
 	}
 
 	return size*nmemb;

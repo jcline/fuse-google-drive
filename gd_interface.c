@@ -150,7 +150,7 @@ int create_oauth_header(struct gdi_state* state)
 	struct str_t oauth_header;
 
 	str_init(&oauth_header);
-	str_init_create(&oauth, "Authorization: OAuth ");
+	str_init_create(&oauth, "Authorization: OAuth ", 0);
 
 	struct str_t* concat[2] = {&oauth, &state->access_token};
 
@@ -252,28 +252,28 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	tmp = json_object_object_get(json, "access_token");
 	const char* val = json_object_get_string(tmp);
 
-	str_init_create(&state->access_token, val);
+	str_init_create(&state->access_token, val, 0);
 	func.func1 = str_destroy;
 	fstack_push(state->stack, &state->access_token, &func, 1);
 
 	tmp = json_object_object_get(json, "token_type");
 	val = json_object_get_string(tmp);
 
-	str_init_create(&state->token_type, val);
+	str_init_create(&state->token_type, val, 0);
 	func.func1 = str_destroy;
 	fstack_push(state->stack, &state->token_type, &func, 1);
 
 	tmp = json_object_object_get(json, "refresh_token");
 	val = json_object_get_string(tmp);
 
-	str_init_create(&state->refresh_token, val);
+	str_init_create(&state->refresh_token, val, 0);
 	func.func1 = free;
 	fstack_push(state->stack, &state->refresh_token, &func, 1);
 
 	tmp = json_object_object_get(json, "id_token");
 	val = json_object_get_string(tmp);
 
-	str_init_create(&state->id_token, val);
+	str_init_create(&state->id_token, val, 0);
 	func.func1 = free;
 	fstack_push(state->stack, &state->id_token, &func, 1);
 
@@ -723,7 +723,7 @@ void gdi_get_file_list(struct gdi_state *state)
 	resp.str = NULL;
 
 	struct str_t uri;
-	str_init_create(&uri, "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000");
+	str_init_create(&uri, "https://docs.google.com/feeds/default/private/full?v=3&showfolders=true&max-results=1000", 0);
 
 	struct str_t* next = NULL;
 

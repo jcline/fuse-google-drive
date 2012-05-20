@@ -130,10 +130,10 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 					switch(*name)
 					{
 						case 'n':
-							str_init_create(&entry->author, value);
+							str_init_create(&entry->author, value, 0);
 							break;
 						case 'e':
-							str_init_create(&entry->author_email, value);
+							str_init_create(&entry->author_email, value, 0);
 							break;
 						default:
 							break;
@@ -145,7 +145,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				if(strcmp(name, "content") == 0)
 				{
 					value = xmlGetProp(c1, "src");
-					str_init_create(&entry->src, value);
+					str_init_create(&entry->src, value, 0);
 					xmlFree(value);
 				}
 				break;
@@ -176,10 +176,10 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 						switch(*name)
 						{
 							case 'n':
-								str_init_create(&entry->lastModifiedBy, value);
+								str_init_create(&entry->lastModifiedBy, value, 0);
 								break;
 							case 'e':
-								str_init_create(&entry->lastModifiedBy_email, value);
+								str_init_create(&entry->lastModifiedBy_email, value, 0);
 								break;
 							default:
 								break;
@@ -205,7 +205,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 						// Link to XML feed for just this entry
 						// Might be useful for checking for updates instead of changesets
 						xmlChar *href = xmlGetProp(c1, "href");
-						str_init_create(&entry->feed, href);
+						str_init_create(&entry->feed, href, 0);
 						xmlFree(href);
 					}
 					else if(strcmp(value, "edit") == 0)
@@ -235,7 +235,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				{
 					value = xmlNodeListGetString(xml, c1->children, 1);
 					entry->md5set = 1;
-					str_init_create(&entry->md5, value);
+					str_init_create(&entry->md5, value, 0);
 					xmlFree(value);
 				}
 				break;
@@ -243,7 +243,7 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 				if(strcmp(name, "title") == 0)
 				{
 					value = xmlNodeListGetString(xml, c1->children, 1);
-					str_init_create(&entry->filename, value);
+					str_init_create(&entry->filename, value, 0);
 					entry->filename.str = filenameencode(value, &entry->filename.len);
 					entry->filename.reserved = entry->filename.len;
 					xmlFree(value);
@@ -294,7 +294,7 @@ struct str_t* xml_get_md5sum(const struct str_t* xml)
 						break;
 
 					value = xmlNodeListGetString(xmldoc, node->children, 1);
-					str_init_create(ret, value);
+					str_init_create(ret, value, 0);
 					xmlFree(value);
 				}
 				break;

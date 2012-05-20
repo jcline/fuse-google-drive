@@ -28,13 +28,13 @@ struct str_t {
 };
 
 void str_init(struct str_t* str);
-int str_init_create(struct str_t* str, const char const* value);
+int str_init_create(struct str_t* str, const char const* value, size_t size);
 int str_destroy(struct str_t* str);
 
 int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[]);
 void str_swap(struct str_t* a, struct str_t* b);
 
-int str_char_concat(struct str_t* str, const char const* value);
+int str_char_concat(struct str_t* str, const char const* value, size_t size);
 
 #endif
 

@@ -27,10 +27,12 @@ void str_init(struct str_t* str)
 	str->reserved = 0;
 }
 
-int str_init_create(struct str_t* str, const char const* value)
+int str_init_create(struct str_t* str, const char const* value, size_t size)
 {
 	str_init(str);
-	return str_char_concat(str, value);
+	if(!size)
+		size = strlen(value);
+	return str_char_concat(str, value, size);
 }
 
 int str_destroy(struct str_t* str)
@@ -66,11 +68,11 @@ void str_swap(struct str_t* a, struct str_t* b)
 	b->len = len;
 }
 
-int str_char_concat(struct str_t* str, const char const* value)
+int str_char_concat(struct str_t* str, const char const* value, size_t size)
 {
 	struct str_t s;
 	s.str = value;
-	s.len = strlen(value);
+	s.len = size;
 	struct str_t* array[] = {&s};
 	return str_concat(str, 1, array);
 }
