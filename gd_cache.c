@@ -267,6 +267,12 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	return entry;
 }
 
+/** Extracts the md5sum from XML containing only an <entry>.
+ *
+ *  @xml struct str_t* the string containing the XML
+ *
+ *  @return a string containing the extracted md5sum.
+ */
 struct str_t* xml_get_md5sum(const struct str_t* xml)
 {
 	size_t length;
@@ -306,6 +312,10 @@ struct str_t* xml_get_md5sum(const struct str_t* xml)
 	return ret;
 }
 
+/** Cleanup an entry.
+ *
+ *  @entry struct gd_fs_entry_t* the entry to uninitialize members for
+ */
 void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 {
 	str_destroy(&entry->author);
@@ -373,6 +383,8 @@ int create_hash_table(size_t size, const struct gd_fs_entry_t* head)
 	return 0;
 }
 
+/** Destroys the global hash table.
+ */
 void destroy_hash_table()
 {
 	hdestroy();
