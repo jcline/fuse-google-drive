@@ -47,8 +47,14 @@ struct gd_fs_entry_t {
 
 	// Add some data we can use in getattr()
 
-	// Linked list
+	/* Internal state variables */
+
+	// Linked list of entries
 	struct gd_fs_entry_t *next;
+
+	// Number of times this file is open()
+	unsigned long open;
+
 };
 
 // Since hsearch et al are likely not threadsafe we need to use a read write

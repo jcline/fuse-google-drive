@@ -231,10 +231,14 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 	// TODO: Make gdi_load() nonblocking if appropriate
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
-	int load = gdi_load(state, entry);
-	if(load)
-		return -1;
+	if(!entry->open)
+	{
+		int load = gdi_load(state, entry);
+		if(load)
+			return -1;
+	}
 
+	++entry->open;
 	return 0;
 }
 
@@ -283,6 +287,10 @@ int gd_flush (const char *path, struct fuse_file_info *fileinfo)
  */
 int gd_release (const char *path, struct fuse_file_info *fileinfo)
 {
+	const char* filename = gdi_strip_path(path);
+	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
+
+	--entry->open;
 	return 0;
 }
 
