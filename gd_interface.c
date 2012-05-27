@@ -35,7 +35,6 @@
 #include "str.h"
 #include "curl_interface.h"
 
-
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
 const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
 //const char drive_scope[] = "https://www.googleapis.com/auth/drive.file";
@@ -45,102 +44,6 @@ const char docsguc_scope[] = "https://docs.googleusercontent.com/";
 const char spreadsheets_scope[] = "https://spreadsheets.google.com/feeds/";
 const char profile_scope[] = "https://www.googleapis.com/auth/userinfo.profile";
 
-char urlunsafe[] = 
-{
-	'$',
-	'&',
-	'+',
-	',',
-	'/',
-	':',
-	';',
-	'=',
-	'?',
-	'@',
-	' ',
-	'"',
-	'<',
-	'>',
-	'#',
-	'%',
-	'{',
-	'}',
-	'|',
-	'\\',
-	'^',
-	'~',
-	'[',
-	']',
-	'`'
-};
-
-/** Escapes unsafe characters for adding to a URI.
- *
- *  @url the string to escape
- *  @length length of the url
- *          precondition:  strlen(url)
- *          postcondition: strlen(escaped url)
- *
- *  @returns escaped, null terminated string
- */
-char* urlencode (const char *url, size_t *length)
-{
-	size_t i;
-	size_t j;
-	size_t count = 0;
-	size_t size = *length;
-	// Count the number of characters that need to be escaped
-	for(i = 0; i < size; ++i)
-	{
-		for(j = 0; j < sizeof(urlunsafe); ++j)
-		{
-			if(url[i] == urlunsafe[j])
-			{
-				++count;
-				break;
-			}
-		}
-	}
-
-	// Allocate the correct amount of memory for the escaped string
-	char *result = (char *) malloc( sizeof(char) * (size + count*3 + 1));
-	if(result == NULL)
-		return NULL;
-
-	// Copy old string into escaped string, escaping where necessary
-	char *iter = result;
-	for(i = 0; i < size; ++i)
-	{
-		for(j = 0; j < sizeof(urlunsafe); ++j)
-		{
-			// We found a character that needs escaping
-			if(url[i] == urlunsafe[j])
-			{
-				// Had a weird issue with sprintf(,"\%%02X,), so I do this instead
-				*iter = '%';
-				++iter;
-				sprintf(iter, "%02X", urlunsafe[j]);
-				iter+=2;
-				break;
-			}
-		}
-		// We did not need to escape the current character in url, so just copy it
-		if(j == sizeof(urlunsafe))
-		{
-			*iter = url[i];
-			++iter;
-		}
-	}
-
-	// Calculate the size of the final string, should be the same as (length+count*3)
-	size = iter - result;
-	// Make sure we null terminate
-	result[size] = 0;
-	// Save the new length
-	*length = size;
-
-	return result;
-}
 
 int create_oauth_header(struct gdi_state* state)
 {
@@ -152,7 +55,7 @@ int create_oauth_header(struct gdi_state* state)
 	str_init(&oauth_header);
 	str_init_create(&oauth, "Authorization: OAuth ", 0);
 
-	struct str_t* concat[2] = {&oauth, &state->access_token};
+	const struct str_t const* concat[2] = {&oauth, &state->access_token};
 
 	str_init(&state->oauth_header);
 	func.func3 = str_destroy;
@@ -360,7 +263,7 @@ char* gdi_load_clientid(const char *path, const char *name)
 size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
 {
 	size_t length = size;
-	char *encoded = urlencode(uri, &length);
+	char *encoded ;//= urlencode(uri, &length);
 	memcpy(buf, encoded, length);
 	free(encoded);
 	return length-1;
@@ -446,15 +349,9 @@ int gdi_init(struct gdi_state* state)
 	fstack_push(estack, state->curlmulti, &func, 3);
 
 	/* Authenticate the application */
-	char response_type_code[] = "?response_type=code";
-	char codeparameter[] = "code=";
-	char redirect[] = "&redirect_uri=";
-	char scope[] = "&scope=";
-	char clientid[] = "&client_id=";
-	char clientsecret[] = "&client_secret=";
-	char granttype[] = "&grant_type=authorization_code";
 
 	// Calculating the correct value is more trouble than it is worth
+	/*
 	char *complete_authuri = (char *) malloc(sizeof(char) * 3000);
 	if(complete_authuri == NULL)
 		goto init_fail;
@@ -496,11 +393,76 @@ int gdi_init(struct gdi_state* state)
 	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
 
 	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
+	*/
 
-	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri);
+	struct str_t complete_authuri;
+	func.func1 = str_destroy;
+	fstack_push(gstack, &complete_authuri, &func, 1);
+
+	struct str_t plus;
+	struct str_t amp;
+	struct str_t que;
+
+	struct str_t response_type_code;
+	struct str_t code_param;
+	struct str_t redirect_param;
+	struct str_t scope_param;
+	struct str_t client_id_param;
+	//struct str_t client_secret_param;
+	struct str_t grant_type_param;
+
+	struct str_t *email_scope_str = str_urlencode_char(email_scope, 0);
+	struct str_t *profile_scope_str = str_urlencode_char(profile_scope, 0);
+	struct str_t *docs_scope_str = str_urlencode_char(docs_scope, 0);
+	struct str_t *docsguc_scope_str = str_urlencode_char(docsguc_scope, 0);
+	struct str_t *spreadsheets_scope_str = str_urlencode_char(spreadsheets_scope, 0);
+
+	struct str_t *redirecturi_str = str_urlencode_char(state->redirecturi, 0);
+	struct str_t *clientid_str = str_urlencode_char(state->clientid, 0);
+
+
+	str_init_create(&plus, "+", 0);
+	str_init_create(&amp, "&", 0);
+	str_init_create(&que, "?", 0);
+
+	str_init_create(&response_type_code, "response_type=code", 0);
+	str_init_create(&code_param, "code=", 0);
+	str_init_create(&redirect_param, "redirect_uri=", 0);
+	str_init_create(&scope_param, "scope=", 0);
+	str_init_create(&client_id_param, "client_id=", 0);
+	//str_init_create(&client_secret_param, "client_secret", 0);
+	str_init_create(&grant_type_param, "grant_type=authorization_code", 0);
+
+	const struct str_t const* uri_parts[] =
+	{
+		&que,
+		&response_type_code,
+		&amp,
+		&scope_param,
+		email_scope_str,
+		&plus,
+		profile_scope_str,
+		&plus,
+		docs_scope_str,
+		&plus,
+		docsguc_scope_str,
+		&plus,
+		spreadsheets_scope_str,
+		&amp,
+		&redirect_param,
+		redirecturi_str,
+		&amp,
+		&client_id_param,
+		clientid_str
+	};
+	str_init_create(&complete_authuri, auth_uri, sizeof(auth_uri));
+	str_concat(&complete_authuri, sizeof(uri_parts)/sizeof(const struct str_t const*), uri_parts);
+
+	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri.str);
 
 	printf("\n\nOnce you authenticate, Google should give you a code, please paste it here:\n");
 
+	/*
 	// Read in the code from Google
 	size_t length = 45;
 	size_t i = 0;
@@ -583,6 +545,7 @@ int gdi_init(struct gdi_state* state)
 
 
 	goto init_success;
+	*/
 
 init_fail:
 	while(estack->size)
