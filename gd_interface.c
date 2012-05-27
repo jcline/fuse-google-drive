@@ -500,7 +500,6 @@ int gdi_init(struct gdi_state* state)
 		goto init_fail;
 	}
 
-	/*
 	// Prepare and make the request to exchange the code for an access token
 	CURL *auth_handle = curl_easy_init();
 	if(auth_handle == NULL)
@@ -509,6 +508,7 @@ int gdi_init(struct gdi_state* state)
 	fstack_push(gstack, auth_handle, &func, 1);
 
 	// Using complete_authuri to store POST data rather than allocating more space
+	/*
 	iter = complete_authuri;
 	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
 	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
@@ -533,6 +533,7 @@ int gdi_init(struct gdi_state* state)
 	if(state->callback_error)
 		goto init_fail;
 
+	*/
 	create_oauth_header(state);
 	gdi_get_file_list(state);
 	if(create_hash_table(state->num_files*4, state->head))
@@ -545,7 +546,6 @@ int gdi_init(struct gdi_state* state)
 
 
 	goto init_success;
-	*/
 
 init_fail:
 	while(estack->size)
