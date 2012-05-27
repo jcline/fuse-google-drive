@@ -462,7 +462,6 @@ int gdi_init(struct gdi_state* state)
 
 	printf("\n\nOnce you authenticate, Google should give you a code, please paste it here:\n");
 
-	/*
 	// Read in the code from Google
 	size_t length = 45;
 	size_t i = 0;
@@ -501,6 +500,7 @@ int gdi_init(struct gdi_state* state)
 		goto init_fail;
 	}
 
+	/*
 	// Prepare and make the request to exchange the code for an access token
 	CURL *auth_handle = curl_easy_init();
 	if(auth_handle == NULL)
