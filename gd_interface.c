@@ -35,7 +35,6 @@
 #include "str.h"
 #include "curl_interface.h"
 
-
 const char auth_uri[] = "https://accounts.google.com/o/oauth2/auth";
 const char token_uri[] = "https://accounts.google.com/o/oauth2/token";
 //const char drive_scope[] = "https://www.googleapis.com/auth/drive.file";
@@ -45,102 +44,6 @@ const char docsguc_scope[] = "https://docs.googleusercontent.com/";
 const char spreadsheets_scope[] = "https://spreadsheets.google.com/feeds/";
 const char profile_scope[] = "https://www.googleapis.com/auth/userinfo.profile";
 
-char urlunsafe[] = 
-{
-	'$',
-	'&',
-	'+',
-	',',
-	'/',
-	':',
-	';',
-	'=',
-	'?',
-	'@',
-	' ',
-	'"',
-	'<',
-	'>',
-	'#',
-	'%',
-	'{',
-	'}',
-	'|',
-	'\\',
-	'^',
-	'~',
-	'[',
-	']',
-	'`'
-};
-
-/** Escapes unsafe characters for adding to a URI.
- *
- *  @url the string to escape
- *  @length length of the url
- *          precondition:  strlen(url)
- *          postcondition: strlen(escaped url)
- *
- *  @returns escaped, null terminated string
- */
-char* urlencode (const char *url, size_t *length)
-{
-	size_t i;
-	size_t j;
-	size_t count = 0;
-	size_t size = *length;
-	// Count the number of characters that need to be escaped
-	for(i = 0; i < size; ++i)
-	{
-		for(j = 0; j < sizeof(urlunsafe); ++j)
-		{
-			if(url[i] == urlunsafe[j])
-			{
-				++count;
-				break;
-			}
-		}
-	}
-
-	// Allocate the correct amount of memory for the escaped string
-	char *result = (char *) malloc( sizeof(char) * (size + count*3 + 1));
-	if(result == NULL)
-		return NULL;
-
-	// Copy old string into escaped string, escaping where necessary
-	char *iter = result;
-	for(i = 0; i < size; ++i)
-	{
-		for(j = 0; j < sizeof(urlunsafe); ++j)
-		{
-			// We found a character that needs escaping
-			if(url[i] == urlunsafe[j])
-			{
-				// Had a weird issue with sprintf(,"\%%02X,), so I do this instead
-				*iter = '%';
-				++iter;
-				sprintf(iter, "%02X", urlunsafe[j]);
-				iter+=2;
-				break;
-			}
-		}
-		// We did not need to escape the current character in url, so just copy it
-		if(j == sizeof(urlunsafe))
-		{
-			*iter = url[i];
-			++iter;
-		}
-	}
-
-	// Calculate the size of the final string, should be the same as (length+count*3)
-	size = iter - result;
-	// Make sure we null terminate
-	result[size] = 0;
-	// Save the new length
-	*length = size;
-
-	return result;
-}
 
 int create_oauth_header(struct gdi_state* state)
 {
@@ -152,7 +55,7 @@ int create_oauth_header(struct gdi_state* state)
 	str_init(&oauth_header);
 	str_init_create(&oauth, "Authorization: OAuth ", 0);
 
-	struct str_t* concat[2] = {&oauth, &state->access_token};
+	const struct str_t const* concat[2] = {&oauth, &state->access_token};
 
 	str_init(&state->oauth_header);
 	func.func3 = str_destroy;
@@ -235,10 +138,9 @@ char* load_file(const char* path, const char* name)
 /** Callback for libcurl for parsing json auth tokens.
  *
  */
-size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
+int curl_post_callback(struct gdi_state *state, struct request_t *request)
 {
-	struct gdi_state *state = (struct gdi_state*) store;
-	struct json_object *json = json_tokener_parse(data);
+	struct json_object *json = json_tokener_parse(request->response.body.str);
 	union func_u func;
 
 	struct json_object *tmp = json_object_object_get(json, "error");
@@ -246,7 +148,7 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	{
 		fprintf(stderr, "Error: %s\n", json_object_get_string(tmp));
 		state->callback_error = 1;
-		return size*nmemb;
+		return 1;
 	}
 
 	tmp = json_object_object_get(json, "access_token");
@@ -280,10 +182,7 @@ size_t curl_post_callback(void *data, size_t size, size_t nmemb, void *store)
 	tmp = json_object_object_get(json, "expires_in");
 	state->token_expiration = json_object_get_int(tmp);
 
-	// libcurl expects this to "read" as much data as it received from the server
-	// since json-c is doing all the work here, unless it errors we may as well
-	// return the size libcurl gave us for the data
-	return size*nmemb;
+	return 0;
 }
 
 void print_api_info(const char* path)
@@ -360,7 +259,7 @@ char* gdi_load_clientid(const char *path, const char *name)
 size_t add_encoded_uri(char *buf, const char *uri, const size_t size)
 {
 	size_t length = size;
-	char *encoded = urlencode(uri, &length);
+	char *encoded ;//= urlencode(uri, &length);
 	memcpy(buf, encoded, length);
 	free(encoded);
 	return length-1;
@@ -446,58 +345,73 @@ int gdi_init(struct gdi_state* state)
 	fstack_push(estack, state->curlmulti, &func, 3);
 
 	/* Authenticate the application */
-	char response_type_code[] = "?response_type=code";
-	char codeparameter[] = "code=";
-	char redirect[] = "&redirect_uri=";
-	char scope[] = "&scope=";
-	char clientid[] = "&client_id=";
-	char clientsecret[] = "&client_secret=";
-	char granttype[] = "&grant_type=authorization_code";
+	struct str_t complete_authuri;
+	func.func1 = str_destroy;
+	fstack_push(gstack, &complete_authuri, &func, 1);
 
-	// Calculating the correct value is more trouble than it is worth
-	char *complete_authuri = (char *) malloc(sizeof(char) * 3000);
-	if(complete_authuri == NULL)
-		goto init_fail;
-	func.func1 = free;
-	fstack_push(gstack, complete_authuri, &func, 1);
+	struct str_t plus;
+	struct str_t amp;
+	struct str_t que;
 
-	char *iter = complete_authuri;
+	struct str_t response_type_code;
+	struct str_t code_param;
+	struct str_t redirect_param;
+	struct str_t scope_param;
+	struct str_t client_id_param;
+	struct str_t client_secret_param;
+	struct str_t grant_type_param;
 
-	// Create the authentication request URI
-	// There might be a cleaner way to do this...
-	iter += add_unencoded_str(iter, auth_uri, sizeof(auth_uri));
-	iter += add_unencoded_str(iter, response_type_code, sizeof(response_type_code));
-	iter += add_unencoded_str(iter, scope, sizeof(scope));
+	struct str_t *email_scope_str = str_urlencode_char(email_scope, 0);
+	struct str_t *profile_scope_str = str_urlencode_char(profile_scope, 0);
+	struct str_t *docs_scope_str = str_urlencode_char(docs_scope, 0);
+	struct str_t *docsguc_scope_str = str_urlencode_char(docsguc_scope, 0);
+	struct str_t *spreadsheets_scope_str = str_urlencode_char(spreadsheets_scope, 0);
 
-	iter += add_encoded_uri(iter, email_scope, sizeof(email_scope));
-	*iter = '+';
-	++iter;
+	struct str_t *redirecturi_str = str_urlencode_char(state->redirecturi, 0);
+	struct str_t *clientid_str = str_urlencode_char(state->clientid, 0);
+	struct str_t *clientsecret_str = str_urlencode_char(state->clientsecrets, 0);
 
-	iter += add_encoded_uri(iter, profile_scope, sizeof(profile_scope));
-	*iter = '+';
-	++iter;
 
-	iter += add_encoded_uri(iter, docs_scope, sizeof(docs_scope));
-	*iter = '+';
-	++iter;
+	str_init_create(&plus, "+", 0);
+	str_init_create(&amp, "&", 0);
+	str_init_create(&que, "?", 0);
 
-	iter += add_encoded_uri(iter, docsguc_scope, sizeof(docsguc_scope));
-	*iter = '+';
-	++iter;
+	str_init_create(&response_type_code, "response_type=code", 0);
+	str_init_create(&code_param, "code=", 0);
+	str_init_create(&redirect_param, "redirect_uri=", 0);
+	str_init_create(&scope_param, "scope=", 0);
+	str_init_create(&client_id_param, "client_id=", 0);
+	str_init_create(&client_secret_param, "client_secret=", 0);
+	str_init_create(&grant_type_param, "grant_type=authorization_code", 0);
 
-	iter += add_encoded_uri(iter, spreadsheets_scope, sizeof(spreadsheets_scope));
-	*iter = '+';
-	++iter;
+	{ // So we can reuse variable name again
+		const struct str_t const* uri_parts[] =
+		{
+			&que,
+			&response_type_code,
+			&amp,
+			&scope_param,
+			email_scope_str,
+			&plus,
+			profile_scope_str,
+			&plus,
+			docs_scope_str,
+			&plus,
+			docsguc_scope_str,
+			&plus,
+			spreadsheets_scope_str,
+			&amp,
+			&redirect_param,
+			redirecturi_str,
+			&amp,
+			&client_id_param,
+			clientid_str
+		};
+		str_init_create(&complete_authuri, auth_uri, 0);
+		str_concat(&complete_authuri, sizeof(uri_parts)/sizeof(const struct str_t const*), uri_parts);
+	}
 
-	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
-
-	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
-
-	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
-
-	iter += add_unencoded_str(iter, state->clientid, strlen(state->clientid)+1);
-
-	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri);
+	printf("Please open this in a web browser and authorize fuse-google-drive:\n%s\n", complete_authuri.str);
 
 	printf("\n\nOnce you authenticate, Google should give you a code, please paste it here:\n");
 
@@ -540,36 +454,41 @@ int gdi_init(struct gdi_state* state)
 	}
 
 	// Prepare and make the request to exchange the code for an access token
-	CURL *auth_handle = curl_easy_init();
-	if(auth_handle == NULL)
-		goto init_fail;
-	func.func1 = curl_easy_cleanup;
-	fstack_push(gstack, auth_handle, &func, 1);
+	str_clear(&complete_authuri);
 
-	// Using complete_authuri to store POST data rather than allocating more space
-	iter = complete_authuri;
-	iter += add_unencoded_str(iter, codeparameter, sizeof(codeparameter));
-	iter += add_encoded_uri(iter, state->code, strlen(state->code)+1);
-	iter += add_unencoded_str(iter, clientid, sizeof(clientid));
-	iter += add_encoded_uri(iter, state->clientid, strlen(state->clientid)+1);
-	iter += add_unencoded_str(iter, clientsecret, sizeof(clientsecret));
-	iter += add_encoded_uri(iter, state->clientsecrets, strlen(state->clientsecrets)+1);
-	iter += add_unencoded_str(iter, redirect, sizeof(redirect));
-	iter += add_encoded_uri(iter, state->redirecturi, strlen(state->redirecturi)+1);
-	iter += add_unencoded_str(iter, granttype, sizeof(granttype));
+	struct str_t *code_str = str_urlencode_char(code, 0);
+	{
+		const struct str_t const* uri_parts[] =
+		{
+			&code_param,
+			code_str,
+			&amp,
+			&client_id_param,
+			clientid_str,
+			&amp,
+			&client_secret_param,
+			clientsecret_str,
+			&amp,
+			&redirect_param,
+			redirecturi_str,
+			&amp,
+			&grant_type_param
+		};
+		str_init(&complete_authuri);
+		if(str_concat(&complete_authuri, sizeof(uri_parts)/sizeof(const struct str_t const*), uri_parts))
+			goto init_fail;
+		printf("%s\n", complete_authuri.str);
 
-	// TODO: errors
-	//curl_easy_setopt(auth_handle, CURLOPT_VERBOSE, 1);
-	curl_easy_setopt(auth_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL); // SSL
-	curl_easy_setopt(auth_handle, CURLOPT_URL, token_uri); // set URI
-	curl_easy_setopt(auth_handle, CURLOPT_POSTFIELDS, complete_authuri); // BODY
-	// set curl_post_callback for parsing the server response
-	curl_easy_setopt(auth_handle, CURLOPT_WRITEFUNCTION, curl_post_callback);
-	// set curl_post_callback's last parameter to state
-	curl_easy_setopt(auth_handle, CURLOPT_WRITEDATA, state);
-	curl_easy_perform(auth_handle); // POST
-	if(state->callback_error)
-		goto init_fail;
+		struct str_t token_uri_str;
+		str_init_create(&token_uri_str, token_uri, 0);
+
+		struct request_t request;
+		ci_init(&request, &token_uri_str, 0, NULL, complete_authuri.str, POST);
+		ci_request(&request);
+		if(curl_post_callback(state, &request))
+			goto init_fail;
+		ci_destroy(&request);
+	}
 
 	create_oauth_header(state);
 	gdi_get_file_list(state);
@@ -728,7 +647,7 @@ void gdi_get_file_list(struct gdi_state *state)
 	struct str_t* next = NULL;
 
 	struct request_t request;
-	ci_init(&request, &uri, 1, &state->oauth_header, GET);
+	ci_init(&request, &uri, 1, &state->oauth_header, NULL, GET);
 	do
 	{
 
@@ -761,7 +680,7 @@ int gdi_check_update(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	if(entry->md5set)
 	{
 		struct request_t request;
-		ci_init(&request, &entry->feed, 1, &state->oauth_header, GET);
+		ci_init(&request, &entry->feed, 1, &state->oauth_header, NULL, GET);
 		ci_request(&request);
 
 		struct str_t* md5 = xml_get_md5sum(&request.response.body);
@@ -792,7 +711,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 				ret = 0;
 				break;
 			case 1:
-				ci_init(&request, &entry->src, 1, &state->oauth_header, GET);
+				ci_init(&request, &entry->src, 1, &state->oauth_header, NULL, GET);
 				ci_request(&request);
 
 				str_swap(&request.response.body, &entry->cache);
@@ -804,7 +723,7 @@ int gdi_load(struct gdi_state* state, struct gd_fs_entry_t* entry)
 	else
 	{
 		struct request_t request;
-		ci_init(&request, &entry->src, 1, &state->oauth_header, GET);
+		ci_init(&request, &entry->src, 1, &state->oauth_header, NULL, GET);
 		ci_request(&request);
 
 		str_swap(&request.response.body, &entry->cache);

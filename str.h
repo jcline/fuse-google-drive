@@ -30,11 +30,17 @@ struct str_t {
 void str_init(struct str_t* str);
 int str_init_create(struct str_t* str, const char const* value, size_t size);
 int str_destroy(struct str_t* str);
+int str_clear(struct str_t* str);
 
-int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[]);
+int str_resize(struct str_t *str, size_t new_size);
+
+int str_concat(struct str_t* str, size_t str_count, const struct str_t const* strings[]);
 void str_swap(struct str_t* a, struct str_t* b);
 
 int str_char_concat(struct str_t* str, const char const* value, size_t size);
+
+struct str_t *str_urlencode_str (const struct str_t const* url);
+struct str_t *str_urlencode_char (const char* url, size_t length);
 
 #endif
 

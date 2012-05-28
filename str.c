@@ -15,8 +15,11 @@
 	with this program; if not, write to the Free Software Foundation, Inc.,
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <assert.h>
 
 #include "str.h"
 
@@ -35,6 +38,15 @@ int str_init_create(struct str_t* str, const char const* value, size_t size)
 	return str_char_concat(str, value, size);
 }
 
+int str_clear(struct str_t* str)
+{
+	if(!str)
+		return 0;
+	memset(str->str, 0, str->reserved);
+	str->len = 0;
+	return 0;
+}
+
 int str_destroy(struct str_t* str)
 {
 	if(!str)
@@ -44,16 +56,24 @@ int str_destroy(struct str_t* str)
 	return 0;
 }
 
-int str_concat(struct str_t* str, size_t str_count, struct str_t* strings[])
+int str_concat(struct str_t* str, size_t str_count, const struct str_t const* strings[])
 {
-	size_t count = 0;
-	for(; count < str_count; ++count)
+	size_t count;
+	size_t alloc = 0;
+	// Count the amount of memory needed
+	for(count = 0; count < str_count; ++count)
+		alloc += strings[count]->len;
+	// Allocate enough memory for current contents and new contents in one go
+	if(str_resize(str, str->len + alloc + 1))
+		return 1;
+
+	// Copy strings[] values into str
+	for(count = 0; count < str_count; ++count)
 	{
-		str->str = (char*) realloc(str->str, str->len + strings[count]->len + 1);
-		str->reserved = str->len + strings[count]->len + 1;
 		memcpy(str->str + str->len, strings[count]->str, strings[count]->len);
 		str->len += strings[count]->len;
 	}
+	// Terminate with null
 	str->str[str->len] = 0;
 	return 0;
 }
@@ -70,9 +90,138 @@ void str_swap(struct str_t* a, struct str_t* b)
 
 int str_char_concat(struct str_t* str, const char const* value, size_t size)
 {
-	struct str_t s;
-	s.str = value;
-	s.len = size;
-	struct str_t* array[] = {&s};
+	// Create array of size 1 with a str_t wrapping the passed char*
+	const struct str_t const* array[] = { &(struct str_t) { .str = value, .len = size, .reserved = size }};
 	return str_concat(str, 1, array);
+}
+
+int str_resize(struct str_t *str, size_t new_size)
+{
+	// We don't need to do anything if called on a smaller amount of space
+	if(new_size <= str->reserved)
+		return 0;
+
+	char* result = (char*) realloc(str->str, sizeof(char) * new_size);
+	if(!result)
+		return 1;
+
+	// If realloc() succeeded, set str and reserved size values
+	str->str = result;
+	str->reserved = new_size;
+
+	return 0;
+}
+
+char urlunsafe[] =
+{
+	'$',
+	'&',
+	'+',
+	',',
+	'/',
+	':',
+	';',
+	'=',
+	'?',
+	'@',
+	' ',
+	'"',
+	'<',
+	'>',
+	'#',
+	'%',
+	'{',
+	'}',
+	'|',
+	'\\',
+	'^',
+	'~',
+	'[',
+	']',
+	'`'
+};
+
+/** Escapes unsafe characters for adding to a URI.
+ *
+ *  This function simply wraps a char* in a str_t* and calls str_urlencode_str.
+ *
+ *  @url the string to escape
+ *
+ *  @returns url encoded str or NULL if error
+ */
+struct str_t *str_urlencode_char (const char* url, size_t length)
+{
+	if(!length)
+		length = strlen(url);
+	const struct str_t tmp = { .str = url, .len = length, .reserved = length };
+	return str_urlencode_str(&tmp);
+}
+
+/** Escapes unsafe characters for adding to a URI.
+ *
+ *  @url the string to escape
+ *
+ *  @returns url encoded str or NULL if error
+ */
+struct str_t *str_urlencode_str (const struct str_t const* url)
+{
+	size_t i;
+	size_t j;
+	size_t count = 0;
+	size_t size = url->len;
+
+	// Count the number of characters that need to be escaped
+	for(i = 0; i < size; ++i)
+	{
+		for(j = 0; j < sizeof(urlunsafe); ++j)
+		{
+			if(url->str[i] == urlunsafe[j])
+			{
+				++count;
+				break;
+			}
+		}
+	}
+
+	// Allocate and correctly size the str
+	struct str_t *result = (struct str_t*) malloc(sizeof(struct str_t));
+	if(result == NULL)
+		return NULL;
+	str_init(result);
+	str_resize(result, sizeof(char) * (size + count*2 + 1));
+
+	// Copy old string into escaped string, escaping where necessary
+	char *iter = result->str;
+	for(i = 0; i < size; ++i)
+	{
+		for(j = 0; j < sizeof(urlunsafe); ++j)
+		{
+			// We found a character that needs escaping
+			if(url->str[i] == urlunsafe[j])
+			{
+				// Had a weird issue with sprintf(,"\%%02X,), so I do this instead
+				*iter = '%';
+				++iter;
+				sprintf(iter, "%02X", urlunsafe[j]);
+				iter+=2;
+				break;
+			}
+		}
+		// We did not need to escape the current character in url, so just copy it
+		if(j == sizeof(urlunsafe))
+		{
+			*iter = url->str[i];
+			++iter;
+		}
+	}
+
+	// Calculate the size of the final string, should be the same as (length+count*2)
+	size = iter - result->str;
+	// Make sure we null terminate
+	result->str[size] = 0;
+
+	// Update result's length
+	result->len = size;
+
+	return result;
 }
