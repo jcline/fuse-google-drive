@@ -79,7 +79,7 @@ struct request_t {
 
 int ci_init(struct request_t* request, struct str_t* uri,
 		size_t header_count, const struct str_t headers[],
-		enum request_type_e type);
+		const char const* msg, enum request_type_e type);
 int ci_destroy(struct request_t* request);
 
 int ci_create_header(struct request_t* request,

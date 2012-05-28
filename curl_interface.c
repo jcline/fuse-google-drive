@@ -34,11 +34,12 @@
  *  @uri          struct str_t*     the uri for the initial request
  *  @header_count size_t            the number of elements in headers[]
  *  @headers      struct str_t[]    the headers, if any, for this request
+ *  @msg          const char*       a message for POST, NULL if not POST
  *  @type         enum request_type the type of the request, GET, POST, ...
  */
 int ci_init(struct request_t* request, struct str_t* uri,
 		size_t header_count, const struct str_t const headers[],
-		enum request_type_e type)
+		const char const* msg, enum request_type_e type)
 {
 	// TODO: Errors
 	union func_u func;
@@ -61,9 +62,24 @@ int ci_init(struct request_t* request, struct str_t* uri,
 	// set curl_post_callback's last parameter to state
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &request->response);
 
-	ret = ci_create_header(request, header_count, headers);
-	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, request->headers); // Set headers
+	if(header_count)
+	{
+		ret = ci_create_header(request, header_count, headers);
+		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, request->headers); // Set headers
+	}
+
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "fuse-google-drive/0.1");
+
+	switch(type)
+	{
+		case GET:
+			break;
+		case POST:
+			curl_easy_setopt(handle, CURLOPT_POSTFIELDS, msg);
+			break;
+		default:
+			break;
+	}
 
 	request->handle = handle;
 
