@@ -38,6 +38,15 @@ int str_init_create(struct str_t* str, const char const* value, size_t size)
 	return str_char_concat(str, value, size);
 }
 
+int str_clear(struct str_t* str)
+{
+	if(!str)
+		return 0;
+	memset(str->str, 0, str->reserved);
+	str->len = 0;
+	return 0;
+}
+
 int str_destroy(struct str_t* str)
 {
 	if(!str)
@@ -61,7 +70,7 @@ int str_concat(struct str_t* str, size_t str_count, const struct str_t const* st
 	// Copy strings[] values into str
 	for(count = 0; count < str_count; ++count)
 	{
-		memcpy(str->str + ((str->len) ? str->len - 1 : 0), strings[count]->str, strings[count]->len);
+		memcpy(str->str + str->len, strings[count]->str, strings[count]->len);
 		str->len += strings[count]->len;
 	}
 	// Terminate with null

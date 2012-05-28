@@ -30,6 +30,7 @@ struct str_t {
 void str_init(struct str_t* str);
 int str_init_create(struct str_t* str, const char const* value, size_t size);
 int str_destroy(struct str_t* str);
+int str_clear(struct str_t* str);
 
 int str_resize(struct str_t *str, size_t new_size);
 
