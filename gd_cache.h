@@ -55,6 +55,7 @@ struct gd_fs_entry_t {
 	// Number of times this file is open()
 	unsigned long open;
 
+	pthread_rwlock_t lock;
 };
 
 // Since hsearch et al are likely not threadsafe we need to use a read write
