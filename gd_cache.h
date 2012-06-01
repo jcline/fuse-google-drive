@@ -23,6 +23,10 @@
 #include <pthread.h>
 #include "str.h"
 
+struct gd_fs_entry_flags_t {
+	int valid    : 1;
+	int writeback: 1;
+};
 
 // Do we need to represent folders differently from files?
 // For the time being, ignore folders
@@ -55,7 +59,9 @@ struct gd_fs_entry_t {
 	// Number of times this file is open()
 	unsigned long open;
 
-	pthread_rwlock_t lock;
+	pthread_rwlock_t *lock;
+
+	struct gd_fs_entry_flags_t flags;
 };
 
 // Since hsearch et al are likely not threadsafe we need to use a read write
