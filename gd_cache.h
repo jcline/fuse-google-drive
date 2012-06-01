@@ -59,7 +59,7 @@ struct gd_fs_entry_t {
 	// Number of times this file is open()
 	unsigned long open;
 
-	pthread_rwlock_t *lock;
+	pthread_rwlock_t lock;
 
 	struct gd_fs_entry_flags_t flags;
 };

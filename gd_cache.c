@@ -111,9 +111,11 @@ struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node)
 	struct gd_fs_entry_t* entry;
 
 	entry = (struct gd_fs_entry_t*) malloc(sizeof(struct gd_fs_entry_t));
-	if(entry == NULL) {} // TODO: ERROR
+	if(entry == NULL)
+		return NULL;
+
 	memset(entry, 0, sizeof(struct gd_fs_entry_t));
-	switch(pthread_rwlock_init(entry->lock, NULL))
+	switch(pthread_rwlock_init(&entry->lock, NULL))
 	{
 		case EAGAIN:
 			// When does this happen? OS/version/hardware specific?
@@ -348,7 +350,7 @@ struct str_t* xml_get_md5sum(const struct str_t* xml)
 void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 {
 	int ret = 0;
-	ret = pthread_rwlock_wrlock(entry->lock);
+	ret = pthread_rwlock_wrlock(&entry->lock);
 	if(ret && ret != EDEADLK)
 		return;
 	entry->flags.valid = 0;
@@ -363,8 +365,8 @@ void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 	str_destroy(&entry->cache);
 	str_destroy(&entry->md5);
 
-	pthread_rwlock_unlock(entry->lock);
-	pthread_rwlock_destroy(entry->lock);
+	pthread_rwlock_unlock(&entry->lock);
+	pthread_rwlock_destroy(&entry->lock);
 }
 
 /** Searches hash table for a filename.
