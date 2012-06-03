@@ -56,12 +56,13 @@ struct gd_fs_entry_t {
 	// Linked list of entries
 	struct gd_fs_entry_t *next;
 
-	// Number of times this file is open()
-	unsigned long open;
-
+	// rdlock taken only on read()
+	// wrlock taken only on write() or struct modifications
 	pthread_rwlock_t lock;
 
 	struct gd_fs_entry_flags_t flags;
+
+	size_t open;
 };
 
 // Since hsearch et al are likely not threadsafe we need to use a read write
@@ -75,6 +76,12 @@ struct gd_fs_lock_t {
 };
 
 void gd_fs_entry_destroy(struct gd_fs_entry_t* entry);
+
+void gd_fs_entry_rdlock(struct gd_fs_entry_t* entry);
+void gd_fs_entry_wrlock(struct gd_fs_entry_t* entry);
+
+void gd_fs_entry_rdunlock(struct gd_fs_entry_t* entry);
+void gd_fs_entry_wrunlock(struct gd_fs_entry_t* entry);
 
 struct gd_fs_entry_t* gd_fs_entry_from_xml(xmlDocPtr xml, xmlNodePtr node);
 struct gd_fs_entry_t* gd_fs_entry_find(const char* key);

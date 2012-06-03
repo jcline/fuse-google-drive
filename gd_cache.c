@@ -369,6 +369,26 @@ void gd_fs_entry_destroy(struct gd_fs_entry_t* entry)
 	pthread_rwlock_destroy(&entry->lock);
 }
 
+void gd_fs_entry_rdlock(struct gd_fs_entry_t* entry)
+{
+	pthread_rwlock_rdlock(&entry->lock);
+}
+
+void gd_fs_entry_wrlock(struct gd_fs_entry_t* entry)
+{
+	pthread_rwlock_wrlock(&entry->lock);
+}
+
+void gd_fs_entry_rdunlock(struct gd_fs_entry_t* entry)
+{
+	pthread_rwlock_unlock(&entry->lock);
+}
+
+void gd_fs_entry_wrunlock(struct gd_fs_entry_t* entry)
+{
+	pthread_rwlock_unlock(&entry->lock);
+}
+
 /** Searches hash table for a filename.
  *
  *  @key the name of the file to find

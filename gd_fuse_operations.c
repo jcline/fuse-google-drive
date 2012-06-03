@@ -185,6 +185,8 @@ int gd_truncate (const char *path, off_t newsize)
 int gd_open (const char *path, struct fuse_file_info * fileinfo)
 {
 	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
+	const char* filename = gdi_strip_path(path);
+	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 
 	int flags = fileinfo->flags;
 	/*
@@ -229,8 +231,6 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 
 	// If we have access to this file, then load it. 
 	// TODO: Make gdi_load() nonblocking if appropriate
-	const char* filename = gdi_strip_path(path);
-	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 	if(!entry->open)
 	{
 		int load = gdi_load(state, entry);
@@ -238,7 +238,6 @@ int gd_open (const char *path, struct fuse_file_info * fileinfo)
 			return -1;
 	}
 
-	++entry->open;
 	return 0;
 }
 
@@ -250,11 +249,23 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
-	if(!entry)
+	if(!entry) // should this be a standard error number, instead?
 		return 0;
+
 	size_t length = size;
-	const char const* chunk = gdi_read(&length, entry, offset);
-	memcpy(buf, chunk, length);
+	if(entry->flags.valid)
+	{
+		gd_fs_entry_rdlock(entry);
+		if(entry->flags.valid)
+		{
+			const char const* chunk = gdi_read(&length, entry, offset);
+			memcpy(buf, chunk, length);
+		}
+		else
+			return 0; // should this be a standard error number, instead?
+		gd_fs_entry_rdunlock(entry);
+	}
+
 	return length;
 }
 
@@ -290,7 +301,7 @@ int gd_release (const char *path, struct fuse_file_info *fileinfo)
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
 
-	--entry->open;
+	gd_fs_entry_rdunlock(entry);
 	return 0;
 }
 
