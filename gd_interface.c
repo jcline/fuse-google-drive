@@ -382,7 +382,7 @@ int gdi_init(struct gdi_state* state)
 	str_init_create(&scope_param, "scope=", 0);
 	str_init_create(&client_id_param, "client_id=", 0);
 	str_init_create(&client_secret_param, "client_secret=", 0);
-	str_init_create(&grant_type_param, "grant_type=authorization_code", 0);
+	str_init_create(&grant_type_param, "grant_type=authorization%5Fcode", 0);
 
 	{ // So we can reuse variable name again
 		const struct str_t const* uri_parts[] =
