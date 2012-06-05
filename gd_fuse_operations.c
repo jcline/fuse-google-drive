@@ -249,8 +249,8 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 	struct gdi_state *state = &((struct gd_state*)fuse_get_context()->private_data)->gdi_data;
 	const char* filename = gdi_strip_path(path);
 	struct gd_fs_entry_t *entry = gd_fs_entry_find(filename);
-	if(!entry) // should this be a standard error number, instead?
-		return 0;
+	if(!entry)
+		return -ENOENT;
 
 	size_t length = size;
 	if(entry->flags.valid)
@@ -262,7 +262,7 @@ int gd_read (const char *path, char *buf, size_t size, off_t offset, struct fuse
 			memcpy(buf, chunk, length);
 		}
 		else
-			return 0; // should this be a standard error number, instead?
+			return -ENOENT;
 		gd_fs_entry_rdunlock(entry);
 	}
 
