@@ -743,3 +743,19 @@ const char* gdi_read(size_t *size, struct gd_fs_entry_t* entry, off_t offset)
 		return NULL;
 	return entry->cache.str + offset;
 }
+
+int gdi_write(struct str_t *str, struct gd_fs_entry* entry, off_t offset)
+{    
+  // Get pointer to position to start write
+  char *start = entry->cache.str + offset;
+  // Do we want to write past the end of the file, not at or before the end?
+  if(start > entry->cache.str + entry->cache.len)
+  {} //error
+
+	if(offset + str->len > entry->cache.reserved)
+	{
+		// resize
+	}
+
+
+}
