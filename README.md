@@ -42,7 +42,7 @@ $ make
 
 Usage:
 
-	Right now you need to go to http://code.google.com/apis/console and create
+Right now you need to go to http://code.google.com/apis/console and create
 a new app and generate a client id and client secret for an install application.
 The clientid value and clientsecrets value should each go into:
 
