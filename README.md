@@ -36,13 +36,13 @@ Compilation:
 
 Usage:
 
-
 	Right now you need to go to http://code.google.com/apis/console and create
 a new app and generate a client id and client secret for an install application.
 The clientid value and clientsecrets value should each go into:
 
 ```$XDG_CONFIG_HOME/fuse-google-drive/clientid
-$XDG_CONFIG_HOME/fuse-google-drive/clientsecrets```
+$XDG_CONFIG_HOME/fuse-google-drive/clientsecrets
+```
 
 resepectively. You should `chmod 700 $XDG_CONFIG_HOME/fuse-google-drive` as well.
 If the folder does not exist at runtime, a helpful message is printed and the
