@@ -5,33 +5,39 @@ Currently in alpha stages. Do not trust this for anything important.
 A detailed guide to get running on Ubuntu: http://jason-king.info/mount-your-google-drive-readonly-on-linux/
 
 Status:
-	read() works, cache not freed until unmount, should detect file updates
-	directory listing works, no heirarchy
-	incorrect stat() info, filesize is correct, fails (as it should) on nonexistant files
-	redirecturi is now hardcoded -- you do not need the file
-	clientsecrets and client id should now be in $XDG_CONFIG_HOME/fuse-google-drive/
+
+* read() works, cache not freed until unmount, should detect file updates
+* directory listing works, no heirarchy
+* incorrect stat() info, filesize is correct, fails (as it should) on nonexistant files
+* redirecturi is now hardcoded -- you do not need the file
+* clientsecrets and client id should now be in `$XDG_CONFIG_HOME/fuse-google-drive/`
 
 Discussion:
-	#fuse-google-drive on irc.freenode.net
+
+* #fuse-google-drive on irc.freenode.net
 
 Dependencies:
-	fuse
-	libcurl
-	json-c aka libjson
-	libxml2
+
+* fuse
+* libcurl
+* json-c aka libjson
+* libxml2
 
 Build Dependencies:
-	autotools
-	make
+
+* autotools
+* make
+
 If you are on one of the systems that does not include development files with
 packages, then make sure you install the development packages for each of the
 dependencies.
 
 Compilation:
+
 ```
-	$ ./autogen.sh
-	$ ./configure
-	$ make
+$ ./autogen.sh
+$ ./configure
+$ make
 ```
 
 Usage:
@@ -40,7 +46,8 @@ Usage:
 a new app and generate a client id and client secret for an install application.
 The clientid value and clientsecrets value should each go into:
 
-```$XDG_CONFIG_HOME/fuse-google-drive/clientid
+```
+$XDG_CONFIG_HOME/fuse-google-drive/clientid
 $XDG_CONFIG_HOME/fuse-google-drive/clientsecrets
 ```
 
@@ -50,11 +57,12 @@ directory is created with the correct permissions if possible.
 Note: If `$XDG_CONFIG_HOME` is unset on your system, it defaults to `~/.config/`.
 
 ```
-	$ mkdir mountpoint
-	$ ./fuse-google-drive mountpoint
+$ mkdir mountpoint
+$ ./fuse-google-drive mountpoint
 ```
 
 Thanks to:
-	http://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/
-	https://www.ibm.com/developerworks/linux/library/l-fuse/
-	Gregor on FreeNode
+
+* http://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/
+* https://www.ibm.com/developerworks/linux/library/l-fuse/
+* Gregor on FreeNode
