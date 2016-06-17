@@ -23,7 +23,12 @@ AC_PROG_CC
 #	     )
 PKG_CHECK_MODULES([fuse], [fuse])
 PKG_CHECK_MODULES([curl], [libcurl])
-PKG_CHECK_MODULES([json], [json])
+PKG_CHECK_MODULES([json], [json],,
+    [
+        AC_MSG_NOTICE([try json-c lib...])
+        PKG_CHECK_MODULES([json], [json-c])
+    ]
+    )
 PKG_CHECK_MODULES([xml], [libxml-2.0])
 
 # Checks for header files.
